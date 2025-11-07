@@ -7189,7 +7189,11 @@ def create_renderable(renderable, materials, shaders, resource_type):
 		semantic_types, mesh_vertices_buffer, semantic_data_types, shader_description = vertices_buffer[mesh_index]
 
 		#add material to the mesh list of materials
-		me_ob.materials.append(bpy.data.materials.get(mMaterialId))
+		mat = bpy.data.materials.get(mMaterialId)
+		if mat.name not in me_ob.materials:
+			me_ob.materials.append(mat)
+
+		material_index = me_ob.materials.find(mat.name)
 
 		BMVert_dictionary = {}
 
@@ -7294,8 +7298,7 @@ def create_renderable(renderable, materials, shaders, resource_type):
 				BMFace = BMFace.copy(verts=False, edges=False)
 			BMFace.index = i
 			BMFace.smooth = True
-			#BMFace.material_index = me_ob.materials.find(mMaterialId)	#issue with duplicated materials
-			BMFace.material_index = mesh_index
+			BMFace.material_index = material_index
 
 			if "TEXCOORD1" in semantic_types:
 				for index, loop in enumerate(BMFace.loops):
