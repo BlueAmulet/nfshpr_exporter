@@ -57,8 +57,6 @@ except:
 
 
 def main(context, file_path, resource_version, resource_type, is_bundle, clear_scene, debug_prefer_shared_asset, hide_low_lods, hide_polygonsoup, hide_skeleton, hide_controlmesh, hide_effects, random_color, global_matrix):
-	os.system('cls')
-
 	if bpy.ops.object.mode_set.poll():
 		bpy.ops.object.mode_set(mode='OBJECT')
 
@@ -8594,6 +8592,7 @@ class ImportNFSHP(Operator, ImportHelper):
 
 		global_matrix = axis_conversion(from_forward='Z', from_up='Y', to_forward=self.axis_forward, to_up=self.axis_up).to_4x4()
 
+		os.system('cls')
 		status = main(context, self.filepath, option_to_resource_version(self.resource_version), option_to_resource_type(self.resource_type), self.is_bundle,
 					  self.clear_scene, self.debug_prefer_shared_asset, self.hide_low_lods, self.hide_polygonsoup, self.hide_skeleton, self.hide_controlmesh,
 					  self.hide_effects, self.random_color, global_matrix)
