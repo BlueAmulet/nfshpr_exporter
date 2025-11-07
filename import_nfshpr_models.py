@@ -40,6 +40,7 @@ import binascii
 import math
 from mathutils import Matrix, Vector, Quaternion, Euler
 import os
+import sys
 import time
 import shutil
 import struct
