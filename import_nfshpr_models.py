@@ -711,7 +711,7 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 				material_color = parameters_Data[parameters_Names.index("mMaterialDiffuse")]
 
 			if material_color != []:
-				mat.node_tree.nodes[mMaterialId].inputs[0].default_value = material_color
+				mat.node_tree.nodes[mMaterialId].inputs['Base Color'].default_value = material_color
 
 			# Textures
 			if len(textures_info) > 0:
@@ -741,9 +741,9 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 					mat_tex.label = mTextureId
 					mat_tex["is_shared_asset"] = is_shared_asset
 					if texture_type == "DiffuseTextureSampler":
-						mat.node_tree.links.new(mat.node_tree.nodes[mMaterialId].inputs[0], mat_tex.outputs[0])
+						mat.node_tree.links.new(mat.node_tree.nodes[mMaterialId].inputs['Base Color'], mat_tex.outputs['Color'])
 					elif texture_type == "SpecularTextureSampler":
-						mat.node_tree.links.new(mat.node_tree.nodes[mMaterialId].inputs[7], mat_tex.outputs[0])
+						mat.node_tree.links.new(mat.node_tree.nodes[mMaterialId].inputs['Specular'], mat_tex.outputs['Color'])
 					elif texture_type == "NormalTextureSampler" or "Normal" in texture_type:
 						if not mat_tex.image is None:
 							mat_tex.image.colorspace_settings.name = "Non-Color"
@@ -751,7 +751,7 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 						if not mat_tex.image is None:
 							mat_tex.image.colorspace_settings.name = "Non-Color"
 
-					mat.node_tree.links.new(uv_map_node0.outputs[0], mat_tex.inputs[0])
+					mat.node_tree.links.new(uv_map_node0.outputs['UV'], mat_tex.inputs['Vector'])
 
 				try:
 					NormalTextureSampler_tex = mat.node_tree.nodes['NormalTextureSampler']
@@ -759,8 +759,8 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 					normal_map_node1 = mat.node_tree.nodes.new(type='ShaderNodeNormalMap')
 					normal_map_node1.uv_map = "UVMap"
 
-					mat.node_tree.links.new(NormalTextureSampler_tex.outputs[0], normal_map_node1.inputs[1])
-					mat.node_tree.links.new(normal_map_node1.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[22])
+					mat.node_tree.links.new(NormalTextureSampler_tex.outputs['Color'], normal_map_node1.inputs['Color'])
+					mat.node_tree.links.new(normal_map_node1.outputs['Normal'], mat.node_tree.nodes[mMaterialId].inputs['Normal'])
 				except:
 					pass
 
@@ -780,23 +780,23 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 					uv_map_node1 = mat.node_tree.nodes.new(type='ShaderNodeUVMap')
 					normal_map_node1 = mat.node_tree.nodes.new(type='ShaderNodeNormalMap')
 
-					mix_rgb_node.inputs[1].default_value = materialDiffuse
+					mix_rgb_node.inputs['Color1'].default_value = materialDiffuse
 					mix_rgb_node.blend_type = "OVERLAY"
 					uv_map_node1.uv_map = "UV3Map"
 					normal_map_node1.uv_map = "UV3Map"
-					normal_map_node1.inputs[0].default_value = 0.15
+					normal_map_node1.inputs['Strength'].default_value = 0.15
 
-					mat.node_tree.links.new(uv_map_node1.outputs[0], DiffuseTextureSampler_tex.inputs[0])
-					mat.node_tree.links.new(uv_map_node1.outputs[0], NormalTextureSampler_tex.inputs[0])
+					mat.node_tree.links.new(uv_map_node1.outputs['UV'], DiffuseTextureSampler_tex.inputs['Vector'])
+					mat.node_tree.links.new(uv_map_node1.outputs['UV'], NormalTextureSampler_tex.inputs['Vector'])
 
-					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs[1], mix_rgb_node.inputs[0])
-					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs[0], mix_rgb_node.inputs[2])
-					mat.node_tree.links.new(mix_rgb_node.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[0])
+					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs['Alpha'], mix_rgb_node.inputs['Fac'])
+					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs['Color'], mix_rgb_node.inputs['Color2'])
+					mat.node_tree.links.new(mix_rgb_node.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Base Color'])
 
-					mat.node_tree.links.new(NormalTextureSampler_tex.outputs[0], normal_map_node1.inputs[1])
-					mat.node_tree.links.new(normal_map_node1.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[22])
+					mat.node_tree.links.new(NormalTextureSampler_tex.outputs['Color'], normal_map_node1.inputs['Color'])
+					mat.node_tree.links.new(normal_map_node1.outputs['Normal'], mat.node_tree.nodes[mMaterialId].inputs['Normal'])
 
-					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs[1], mat.node_tree.nodes[mMaterialId].inputs[21])
+					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs['Alpha'], mat.node_tree.nodes[mMaterialId].inputs['Alpha'])
 					mat.blend_method = 'BLEND'
 					mat.shadow_method = 'HASHED'
 					mat.use_backface_culling = True
@@ -808,16 +808,16 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 					normal_map_node1 = mat.node_tree.nodes.new(type='ShaderNodeNormalMap')
 					normal_map_node1.uv_map = "UVMap"
 
-					#mat.node_tree.links.new(NormalTextureSampler_tex.outputs[0], normal_map_node1.inputs[1])
-					#mat.node_tree.links.new(normal_map_node1.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[22])
-					mat.node_tree.links.new(NormalTextureSampler_tex.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[22])
+					#mat.node_tree.links.new(NormalTextureSampler_tex.outputs['Color'], normal_map_node1.inputs['Color'])
+					#mat.node_tree.links.new(normal_map_node1.outputs['Normal'], mat.node_tree.nodes[mMaterialId].inputs['Normal'])
+					mat.node_tree.links.new(NormalTextureSampler_tex.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Normal'])
 
-					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs[1], mat.node_tree.nodes[mMaterialId].inputs[21])
+					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs['Alpha'], mat.node_tree.nodes[mMaterialId].inputs['Alpha'])
 					mat.blend_method = 'BLEND'
 					mat.shadow_method = 'HASHED'
 
-					mat.node_tree.nodes[mMaterialId].inputs[6].default_value = 0.5
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 0.2
+					mat.node_tree.nodes[mMaterialId].inputs['Metallic'].default_value = 0.5
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 0.2
 
 				elif shader_type == "Vehicle_1Bit_Textured_NormalMapped_Reflective_Emissive_AO_Livery":
 					DiffuseTextureSampler_tex = mat.node_tree.nodes['DiffuseTextureSampler']
@@ -829,26 +829,26 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 					uv_map_node1 = mat.node_tree.nodes.new(type='ShaderNodeUVMap')
 					normal_map_node1 = mat.node_tree.nodes.new(type='ShaderNodeNormalMap')
 
-					mix_rgb_node.inputs[1].default_value = materialDiffuse
+					mix_rgb_node.inputs['Color1'].default_value = materialDiffuse
 					mix_rgb_node.blend_type = "OVERLAY"
 					uv_map_node1.uv_map = "UV3Map"
 					normal_map_node1.uv_map = "UV3Map"
-					normal_map_node1.inputs[0].default_value = 0.15
+					normal_map_node1.inputs['Strength'].default_value = 0.15
 
-					mat.node_tree.links.new(uv_map_node1.outputs[0], DiffuseTextureSampler_tex.inputs[0])
-					mat.node_tree.links.new(uv_map_node1.outputs[0], NormalTextureSampler_tex.inputs[0])
+					mat.node_tree.links.new(uv_map_node1.outputs['UV'], DiffuseTextureSampler_tex.inputs['Vector'])
+					mat.node_tree.links.new(uv_map_node1.outputs['UV'], NormalTextureSampler_tex.inputs['Vector'])
 
-					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs[1], mix_rgb_node.inputs[0])
-					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs[0], mix_rgb_node.inputs[2])
-					mat.node_tree.links.new(mix_rgb_node.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[0])
+					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs['Alpha'], mix_rgb_node.inputs['Fac'])
+					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs['Color'], mix_rgb_node.inputs['Color2'])
+					mat.node_tree.links.new(mix_rgb_node.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Base Color'])
 
-					mat.node_tree.links.new(NormalTextureSampler_tex.outputs[0], normal_map_node1.inputs[1])
-					mat.node_tree.links.new(normal_map_node1.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[22])
+					mat.node_tree.links.new(NormalTextureSampler_tex.outputs['Color'], normal_map_node1.inputs['Color'])
+					mat.node_tree.links.new(normal_map_node1.outputs['Normal'], mat.node_tree.nodes[mMaterialId].inputs['Normal'])
 
-					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs[1], mat.node_tree.nodes[mMaterialId].inputs[21])
+					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs['Alpha'], mat.node_tree.nodes[mMaterialId].inputs['Alpha'])
 
-					mat.node_tree.nodes[mMaterialId].inputs[6].default_value = 0.5
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 0.25
+					mat.node_tree.nodes[mMaterialId].inputs['Metallic'].default_value = 0.5
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 0.25
 
 					mat.blend_method = 'HASHED'
 					mat.shadow_method = 'HASHED'
@@ -857,12 +857,12 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 					mGlassColour = parameters_Data[parameters_Names.index("mGlassColour")]
 					mGlassControls = parameters_Data[parameters_Names.index("mGlassControls")]
 
-					mat.node_tree.nodes[mMaterialId].inputs[0].default_value = mGlassColour
+					mat.node_tree.nodes[mMaterialId].inputs['Base Color'].default_value = mGlassColour
 
-					mat.node_tree.nodes[mMaterialId].inputs[6].default_value = 0.0
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 0.0
-					mat.node_tree.nodes[mMaterialId].inputs[17].default_value = 1.0
-					mat.node_tree.nodes[mMaterialId].inputs[21].default_value = 1.0 - mGlassControls[3]
+					mat.node_tree.nodes[mMaterialId].inputs['Metallic'].default_value = 0.0
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 0.0
+					mat.node_tree.nodes[mMaterialId].inputs['Transmission'].default_value = 1.0
+					mat.node_tree.nodes[mMaterialId].inputs['Alpha'].default_value = 1.0 - mGlassControls[3]
 
 					mat.use_screen_refraction = True
 					mat.refraction_depth = 0.01
@@ -880,12 +880,12 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 					mGlassColour = parameters_Data[parameters_Names.index("mGlassColour")]
 					mGlassControls = parameters_Data[parameters_Names.index("mGlassControls")]
 
-					mat.node_tree.nodes[mMaterialId].inputs[0].default_value = mGlassColour
+					mat.node_tree.nodes[mMaterialId].inputs['Base Color'].default_value = mGlassColour
 
-					mat.node_tree.nodes[mMaterialId].inputs[6].default_value = 0.0
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 0.0
-					mat.node_tree.nodes[mMaterialId].inputs[17].default_value = 1.0
-					mat.node_tree.nodes[mMaterialId].inputs[21].default_value = 1.0 - mGlassControls[3]
+					mat.node_tree.nodes[mMaterialId].inputs['Metallic'].default_value = 0.0
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 0.0
+					mat.node_tree.nodes[mMaterialId].inputs['Transmission'].default_value = 1.0
+					mat.node_tree.nodes[mMaterialId].inputs['Alpha'].default_value = 1.0 - mGlassControls[3]
 
 					mat.use_screen_refraction = True
 					mat.refraction_depth = 0.01
@@ -903,12 +903,12 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 					mGlassColour = parameters_Data[parameters_Names.index("mGlassColour")]
 					mGlassControls = parameters_Data[parameters_Names.index("mGlassControls")]
 
-					mat.node_tree.nodes[mMaterialId].inputs[0].default_value = mGlassColour
+					mat.node_tree.nodes[mMaterialId].inputs['Base Color'].default_value = mGlassColour
 
-					mat.node_tree.nodes[mMaterialId].inputs[6].default_value = 0.0
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 0.0
-					mat.node_tree.nodes[mMaterialId].inputs[17].default_value = 1.0
-					mat.node_tree.nodes[mMaterialId].inputs[21].default_value = 1.0 - mGlassControls[3]
+					mat.node_tree.nodes[mMaterialId].inputs['Metallic'].default_value = 0.0
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 0.0
+					mat.node_tree.nodes[mMaterialId].inputs['Transmission'].default_value = 1.0
+					mat.node_tree.nodes[mMaterialId].inputs['Alpha'].default_value = 1.0 - mGlassControls[3]
 
 					mat.use_screen_refraction = True
 					mat.refraction_depth = 0.01
@@ -926,12 +926,12 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 					mGlassColour = parameters_Data[parameters_Names.index("mGlassColour")]
 					mGlassControls = parameters_Data[parameters_Names.index("mGlassControls")]
 
-					mat.node_tree.nodes[mMaterialId].inputs[0].default_value = mGlassColour
+					mat.node_tree.nodes[mMaterialId].inputs['Base Color'].default_value = mGlassColour
 
-					mat.node_tree.nodes[mMaterialId].inputs[6].default_value = 0.0
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 0.0
-					mat.node_tree.nodes[mMaterialId].inputs[17].default_value = 1.0
-					mat.node_tree.nodes[mMaterialId].inputs[21].default_value = 1.0 - mGlassControls[3]
+					mat.node_tree.nodes[mMaterialId].inputs['Metallic'].default_value = 0.0
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 0.0
+					mat.node_tree.nodes[mMaterialId].inputs['Transmission'].default_value = 1.0
+					mat.node_tree.nodes[mMaterialId].inputs['Alpha'].default_value = 1.0 - mGlassControls[3]
 
 					mat.use_screen_refraction = True
 					mat.refraction_depth = 0.01
@@ -949,12 +949,12 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 					mGlassColour = parameters_Data[parameters_Names.index("mGlassColour")]
 					mGlassControls = parameters_Data[parameters_Names.index("mGlassControls")]
 
-					mat.node_tree.nodes[mMaterialId].inputs[0].default_value = mGlassColour
+					mat.node_tree.nodes[mMaterialId].inputs['Base Color'].default_value = mGlassColour
 
-					mat.node_tree.nodes[mMaterialId].inputs[6].default_value = 0.0
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 0.0
-					mat.node_tree.nodes[mMaterialId].inputs[17].default_value = 1.0
-					mat.node_tree.nodes[mMaterialId].inputs[21].default_value = 1.0 - mGlassControls[3]
+					mat.node_tree.nodes[mMaterialId].inputs['Metallic'].default_value = 0.0
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 0.0
+					mat.node_tree.nodes[mMaterialId].inputs['Transmission'].default_value = 1.0
+					mat.node_tree.nodes[mMaterialId].inputs['Alpha'].default_value = 1.0 - mGlassControls[3]
 
 					mat.use_screen_refraction = True
 					mat.refraction_depth = 0.01
@@ -974,14 +974,14 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 					gEmissiveColour = parameters_Data[parameters_Names.index("gEmissiveColour")]
 					mSelfIlluminationMultiplier = parameters_Data[parameters_Names.index("mSelfIlluminationMultiplier")]
 
-					mat.node_tree.nodes[mMaterialId].inputs[0].default_value = mGlassColour
-					mat.node_tree.nodes[mMaterialId].inputs[19].default_value = gEmissiveColour
-					mat.node_tree.nodes[mMaterialId].inputs[20].default_value = mSelfIlluminationMultiplier[0]*10.0
+					mat.node_tree.nodes[mMaterialId].inputs['Base Color'].default_value = mGlassColour
+					mat.node_tree.nodes[mMaterialId].inputs['Emission'].default_value = gEmissiveColour
+					mat.node_tree.nodes[mMaterialId].inputs['Emission Strength'].default_value = mSelfIlluminationMultiplier[0]*10.0
 
-					mat.node_tree.nodes[mMaterialId].inputs[6].default_value = 0.0
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 0.0
-					mat.node_tree.nodes[mMaterialId].inputs[17].default_value = 1.0
-					mat.node_tree.nodes[mMaterialId].inputs[21].default_value = 1.0 - mGlassControls[3]
+					mat.node_tree.nodes[mMaterialId].inputs['Metallic'].default_value = 0.0
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 0.0
+					mat.node_tree.nodes[mMaterialId].inputs['Transmission'].default_value = 1.0
+					mat.node_tree.nodes[mMaterialId].inputs['Alpha'].default_value = 1.0 - mGlassControls[3]
 
 					mat.use_screen_refraction = True
 					mat.refraction_depth = 0.01
@@ -1004,19 +1004,19 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 					mix_rgb_node = mat.node_tree.nodes.new(type='ShaderNodeMixRGB')
 
 					mix_rgb_node.blend_type = "OVERLAY"
-					mix_rgb_node.inputs[1].default_value = materialDiffuse
+					mix_rgb_node.inputs['Color1'].default_value = materialDiffuse
 
 					normal_map_node1 = mat.node_tree.nodes.new(type='ShaderNodeNormalMap')
 					normal_map_node1.uv_map = "UVMap"
 
-					mat.node_tree.links.new(NormalTextureSampler_tex.outputs[0], normal_map_node1.inputs[1])
-					mat.node_tree.links.new(normal_map_node1.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[22])
+					mat.node_tree.links.new(NormalTextureSampler_tex.outputs['Color'], normal_map_node1.inputs['Color'])
+					mat.node_tree.links.new(normal_map_node1.outputs['Normal'], mat.node_tree.nodes[mMaterialId].inputs['Normal'])
 
-					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs[1], mix_rgb_node.inputs[0])
-					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs[0], mix_rgb_node.inputs[2])
-					mat.node_tree.links.new(mix_rgb_node.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[0])
+					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs['Alpha'], mix_rgb_node.inputs['Fac'])
+					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs['Color'], mix_rgb_node.inputs['Color2'])
+					mat.node_tree.links.new(mix_rgb_node.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Base Color'])
 
-					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs[1], mat.node_tree.nodes[mMaterialId].inputs[21])
+					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs['Alpha'], mat.node_tree.nodes[mMaterialId].inputs['Alpha'])
 
 					mat.blend_method = 'BLEND'
 					mat.shadow_method = 'HASHED'
@@ -1028,62 +1028,62 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 					normal_map_node1 = mat.node_tree.nodes.new(type='ShaderNodeNormalMap')
 					normal_map_node1.uv_map = "UVMap"
 
-					#mat.node_tree.links.new(NormalTextureSampler_tex.outputs[0], normal_map_node1.inputs[1])
-					#mat.node_tree.links.new(normal_map_node1.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[22])
-					mat.node_tree.links.new(NormalTextureSampler_tex.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[22])
+					#mat.node_tree.links.new(NormalTextureSampler_tex.outputs['Color'], normal_map_node1.inputs['Color'])
+					#mat.node_tree.links.new(normal_map_node1.outputs['Normal'], mat.node_tree.nodes[mMaterialId].inputs['Normal'])
+					mat.node_tree.links.new(NormalTextureSampler_tex.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Normal'])
 
-					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs[1], mat.node_tree.nodes[mMaterialId].inputs[21])
+					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs['Alpha'], mat.node_tree.nodes[mMaterialId].inputs['Alpha'])
 					mat.blend_method = 'BLEND'
 					mat.shadow_method = 'HASHED'
 
-					mat.node_tree.nodes[mMaterialId].inputs[6].default_value = 0.5
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 0.2
+					mat.node_tree.nodes[mMaterialId].inputs['Metallic'].default_value = 0.5
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 0.2
 
 				elif shader_type == "Vehicle_Opaque_Emissive_AO":
-					mat.node_tree.nodes[mMaterialId].inputs[6].default_value = 0.0
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 0.5
+					mat.node_tree.nodes[mMaterialId].inputs['Metallic'].default_value = 0.0
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 0.5
 
 				elif shader_type == "Vehicle_Opaque_Emissive_Reflective_AO":
-					mat.node_tree.nodes[mMaterialId].inputs[6].default_value = 0.9
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 0.2
+					mat.node_tree.nodes[mMaterialId].inputs['Metallic'].default_value = 0.9
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 0.2
 
 				elif shader_type == "Vehicle_Opaque_PaintGloss_Textured_LightmappedLights":
 					mPaintColourIndex = parameters_Data[parameters_Names.index("mPaintColourIndex")][0]
 					if random_color == True:
 						if mPaintColourIndex == 0:
-							mat.node_tree.nodes[mMaterialId].inputs[0].default_value = RGBA_random
+							mat.node_tree.nodes[mMaterialId].inputs['Base Color'].default_value = RGBA_random
 						else:
-							mat.node_tree.nodes[mMaterialId].inputs[0].default_value = RGBA_random2
+							mat.node_tree.nodes[mMaterialId].inputs['Base Color'].default_value = RGBA_random2
 					else:
 						if mPaintColourIndex == 0:
-							mat.node_tree.nodes[mMaterialId].inputs[0].default_value = (0.8, 0.8, 0.8, 1.0)
+							mat.node_tree.nodes[mMaterialId].inputs['Base Color'].default_value = (0.8, 0.8, 0.8, 1.0)
 						else:
-							mat.node_tree.nodes[mMaterialId].inputs[0].default_value = (1.0, 0.132868, 0.0, 1.0)
-					mat.node_tree.nodes[mMaterialId].inputs[6].default_value = 0.75
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 0.25
+							mat.node_tree.nodes[mMaterialId].inputs['Base Color'].default_value = (1.0, 0.132868, 0.0, 1.0)
+					mat.node_tree.nodes[mMaterialId].inputs['Metallic'].default_value = 0.75
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 0.25
 
 				elif shader_type == "Vehicle_Opaque_PaintGloss_Textured_LightmappedLights_Wrap":
 					mPaintColourIndex = parameters_Data[parameters_Names.index("mPaintColourIndex")][0]
 					if random_color == True:
 						if mPaintColourIndex == 0:
-							mat.node_tree.nodes[mMaterialId].inputs[0].default_value = RGBA_random
+							mat.node_tree.nodes[mMaterialId].inputs['Base Color'].default_value = RGBA_random
 						else:
-							mat.node_tree.nodes[mMaterialId].inputs[0].default_value = RGBA_random2
+							mat.node_tree.nodes[mMaterialId].inputs['Base Color'].default_value = RGBA_random2
 					else:
 						if mPaintColourIndex == 0:
-							mat.node_tree.nodes[mMaterialId].inputs[0].default_value = (0.8, 0.8, 0.8, 1.0)
+							mat.node_tree.nodes[mMaterialId].inputs['Base Color'].default_value = (0.8, 0.8, 0.8, 1.0)
 						else:
-							mat.node_tree.nodes[mMaterialId].inputs[0].default_value = (1.0, 0.132868, 0.0, 1.0)
-					mat.node_tree.nodes[mMaterialId].inputs[6].default_value = 0.75
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 0.25
+							mat.node_tree.nodes[mMaterialId].inputs['Base Color'].default_value = (1.0, 0.132868, 0.0, 1.0)
+					mat.node_tree.nodes[mMaterialId].inputs['Metallic'].default_value = 0.75
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 0.25
 
 				elif shader_type == "Vehicle_Opaque_PaintGloss_Textured_LightmappedLights_ColourOverride":
-					mat.node_tree.nodes[mMaterialId].inputs[6].default_value = 0.75
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 0.25
+					mat.node_tree.nodes[mMaterialId].inputs['Metallic'].default_value = 0.75
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 0.25
 
 				elif shader_type == "Vehicle_Opaque_PaintGloss_Textured_LightmappedLights_ColourOverride_Wrap":
-					mat.node_tree.nodes[mMaterialId].inputs[6].default_value = 0.75
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 0.25
+					mat.node_tree.nodes[mMaterialId].inputs['Metallic'].default_value = 0.75
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 0.25
 
 				elif shader_type == "Vehicle_Opaque_PaintGloss_Textured_LightmappedLights_ColourOverride_Livery":
 					DiffuseTextureSampler_tex = mat.node_tree.nodes['DiffuseTextureSampler']
@@ -1094,11 +1094,11 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 					if sampler_states_info[0][0] == 'AD_42_2A_75':
 						DiffuseTextureSampler_tex.extension = "EXTEND"
 
-					mat.node_tree.links.new(uv_map_node1.outputs[0], DiffuseTextureSampler_tex.inputs[0])
+					mat.node_tree.links.new(uv_map_node1.outputs['UV'], DiffuseTextureSampler_tex.inputs['Vector'])
 
-					mat.node_tree.nodes[mMaterialId].inputs[6].default_value = 0.75
-					mat.node_tree.nodes[mMaterialId].inputs[7].default_value = 0.2
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 0.25
+					mat.node_tree.nodes[mMaterialId].inputs['Metallic'].default_value = 0.75
+					mat.node_tree.nodes[mMaterialId].inputs['Specular'].default_value = 0.2
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 0.25
 
 				elif shader_type == "Vehicle_Opaque_PaintGloss_Textured_LightmappedLights_Livery":
 					DiffuseTextureSampler_tex = mat.node_tree.nodes['DiffuseTextureSampler']
@@ -1115,22 +1115,22 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 
 					if random_color == True:
 						if mPaintColourIndex == 0:
-							mix_rgb_node.inputs[1].default_value = RGBA_random
+							mix_rgb_node.inputs['Color1'].default_value = RGBA_random
 						else:
-							mix_rgb_node.inputs[1].default_value = RGBA_random2
+							mix_rgb_node.inputs['Color1'].default_value = RGBA_random2
 					else:
 						if mPaintColourIndex == 0:
-							mix_rgb_node.inputs[1].default_value = (0.8, 0.8, 0.8, 1.0)
+							mix_rgb_node.inputs['Color1'].default_value = (0.8, 0.8, 0.8, 1.0)
 						else:
-							mix_rgb_node.inputs[1].default_value = (1.0, 0.132868, 0.0, 1.0)
+							mix_rgb_node.inputs['Color1'].default_value = (1.0, 0.132868, 0.0, 1.0)
 
-					mat.node_tree.links.new(uv_map_node1.outputs[0], DiffuseTextureSampler_tex.inputs[0])
-					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs[1], mix_rgb_node.inputs[0])
-					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs[0], mix_rgb_node.inputs[2])
-					mat.node_tree.links.new(mix_rgb_node.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[0])
+					mat.node_tree.links.new(uv_map_node1.outputs['UV'], DiffuseTextureSampler_tex.inputs['Vector'])
+					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs['Alpha'], mix_rgb_node.inputs['Fac'])
+					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs['Color'], mix_rgb_node.inputs['Color2'])
+					mat.node_tree.links.new(mix_rgb_node.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Base Color'])
 
-					mat.node_tree.nodes[mMaterialId].inputs[6].default_value = 0.75
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 0.25
+					mat.node_tree.nodes[mMaterialId].inputs['Metallic'].default_value = 0.75
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 0.25
 
 				elif shader_type == "Vehicle_Opaque_PaintGloss_Textured_LightmappedLights_Livery_Wrap":
 					DiffuseTextureSampler_tex = mat.node_tree.nodes['DiffuseTextureSampler']
@@ -1147,29 +1147,29 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 
 					if random_color == True:
 						if mPaintColourIndex == 0:
-							mix_rgb_node.inputs[1].default_value = RGBA_random
+							mix_rgb_node.inputs['Color1'].default_value = RGBA_random
 						else:
-							mix_rgb_node.inputs[1].default_value = RGBA_random2
+							mix_rgb_node.inputs['Color1'].default_value = RGBA_random2
 					else:
 						if mPaintColourIndex == 0:
-							mix_rgb_node.inputs[1].default_value = (0.8, 0.8, 0.8, 1.0)
+							mix_rgb_node.inputs['Color1'].default_value = (0.8, 0.8, 0.8, 1.0)
 						else:
-							mix_rgb_node.inputs[1].default_value = (1.0, 0.132868, 0.0, 1.0)
+							mix_rgb_node.inputs['Color1'].default_value = (1.0, 0.132868, 0.0, 1.0)
 
-					mat.node_tree.links.new(uv_map_node1.outputs[0], DiffuseTextureSampler_tex.inputs[0])
-					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs[1], mix_rgb_node.inputs[0])
-					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs[0], mix_rgb_node.inputs[2])
-					mat.node_tree.links.new(mix_rgb_node.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[0])
+					mat.node_tree.links.new(uv_map_node1.outputs['UV'], DiffuseTextureSampler_tex.inputs['Vector'])
+					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs['Alpha'], mix_rgb_node.inputs['Fac'])
+					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs['Color'], mix_rgb_node.inputs['Color2'])
+					mat.node_tree.links.new(mix_rgb_node.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Base Color'])
 
-					mat.node_tree.nodes[mMaterialId].inputs[6].default_value = 0.75
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 0.25
+					mat.node_tree.nodes[mMaterialId].inputs['Metallic'].default_value = 0.75
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 0.25
 
 				elif shader_type == "Vehicle_Opaque_Textured":
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 0.3
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 0.3
 					mat.use_backface_culling = True
 
 				elif shader_type == "Vehicle_Opaque_Textured_Normalmapped_AO":
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 0.7
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 0.7
 
 				elif shader_type == "Vehicle_Opaque_Textured_NormalMapped_Emissive_AO":
 					LightmapLightsTextureSampler_tex = mat.node_tree.nodes['LightmapLightsTextureSampler']
@@ -1179,35 +1179,35 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 					LightmappedLightsGreenChannelColour = parameters_Data[parameters_Names.index("LightmappedLightsGreenChannelColour")]
 					LightmappedLightsBlueChannelColour  = parameters_Data[parameters_Names.index("LightmappedLightsBlueChannelColour")]
 
-					separete_rgb_node1 = mat.node_tree.nodes.new(type='ShaderNodeSeparateRGB')
+					separate_rgb_node1 = mat.node_tree.nodes.new(type='ShaderNodeSeparateRGB')
 					mix_rgb_node_r = mat.node_tree.nodes.new(type='ShaderNodeMixRGB')
 					mix_rgb_node_g = mat.node_tree.nodes.new(type='ShaderNodeMixRGB')
 					mix_rgb_node_b = mat.node_tree.nodes.new(type='ShaderNodeMixRGB')
 					mix_rgb_node1 = mat.node_tree.nodes.new(type='ShaderNodeMixRGB')
 					mix_rgb_node2 = mat.node_tree.nodes.new(type='ShaderNodeMixRGB')
 
-					mix_rgb_node_r.inputs[1].default_value = (0, 0, 0, 0)
-					mix_rgb_node_g.inputs[1].default_value = (0, 0, 0, 0)
-					mix_rgb_node_b.inputs[1].default_value = (0, 0, 0, 0)
+					mix_rgb_node_r.inputs['Color1'].default_value = (0, 0, 0, 0)
+					mix_rgb_node_g.inputs['Color1'].default_value = (0, 0, 0, 0)
+					mix_rgb_node_b.inputs['Color1'].default_value = (0, 0, 0, 0)
 
-					mix_rgb_node_r.inputs[2].default_value = LightmappedLightsRedChannelColour
-					mix_rgb_node_g.inputs[2].default_value = LightmappedLightsGreenChannelColour
-					mix_rgb_node_b.inputs[2].default_value = LightmappedLightsBlueChannelColour
+					mix_rgb_node_r.inputs['Color2'].default_value = LightmappedLightsRedChannelColour
+					mix_rgb_node_g.inputs['Color2'].default_value = LightmappedLightsGreenChannelColour
+					mix_rgb_node_b.inputs['Color2'].default_value = LightmappedLightsBlueChannelColour
 
-					mat.node_tree.links.new(LightmapLightsTextureSampler_tex.outputs[0], separete_rgb_node1.inputs[0])
+					mat.node_tree.links.new(LightmapLightsTextureSampler_tex.outputs['Color'], separate_rgb_node1.inputs['Image'])
 
-					mat.node_tree.links.new(separete_rgb_node1.outputs[0], mix_rgb_node_r.inputs[0])
-					mat.node_tree.links.new(separete_rgb_node1.outputs[1], mix_rgb_node_g.inputs[0])
-					mat.node_tree.links.new(separete_rgb_node1.outputs[2], mix_rgb_node_b.inputs[0])
+					mat.node_tree.links.new(separate_rgb_node1.outputs['R'], mix_rgb_node_r.inputs['Fac'])
+					mat.node_tree.links.new(separate_rgb_node1.outputs['G'], mix_rgb_node_g.inputs['Fac'])
+					mat.node_tree.links.new(separate_rgb_node1.outputs['B'], mix_rgb_node_b.inputs['Fac'])
 
-					mat.node_tree.links.new(mix_rgb_node_r.outputs[0], mix_rgb_node1.inputs[1])
-					mat.node_tree.links.new(mix_rgb_node_g.outputs[0], mix_rgb_node1.inputs[2])
+					mat.node_tree.links.new(mix_rgb_node_r.outputs['Color'], mix_rgb_node1.inputs['Color1'])
+					mat.node_tree.links.new(mix_rgb_node_g.outputs['Color'], mix_rgb_node1.inputs['Color2'])
 
-					mat.node_tree.links.new(mix_rgb_node1.outputs[0], mix_rgb_node2.inputs[1])
-					mat.node_tree.links.new(mix_rgb_node_b.outputs[0], mix_rgb_node2.inputs[2])
+					mat.node_tree.links.new(mix_rgb_node1.outputs['Color'], mix_rgb_node2.inputs['Color1'])
+					mat.node_tree.links.new(mix_rgb_node_b.outputs['Color'], mix_rgb_node2.inputs['Color2'])
 
-					mat.node_tree.links.new(mix_rgb_node2.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[19])
-					mat.node_tree.nodes[mMaterialId].inputs[20].default_value = mSelfIlluminationMultiplier[0]*10.0
+					mat.node_tree.links.new(mix_rgb_node2.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Emission'])
+					mat.node_tree.nodes[mMaterialId].inputs['Emission Strength'].default_value = mSelfIlluminationMultiplier[0]*10.0
 
 				elif shader_type == "Vehicle_Opaque_Textured_NormalMapped_Emissive_AO_Livery":
 					DiffuseTextureSampler_tex = mat.node_tree.nodes['DiffuseTextureSampler']
@@ -1221,7 +1221,7 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 					LightmappedLightsGreenChannelColour = parameters_Data[parameters_Names.index("LightmappedLightsGreenChannelColour")]
 					LightmappedLightsBlueChannelColour  = parameters_Data[parameters_Names.index("LightmappedLightsBlueChannelColour")]
 
-					separete_rgb_node1 = mat.node_tree.nodes.new(type='ShaderNodeSeparateRGB')
+					separate_rgb_node1 = mat.node_tree.nodes.new(type='ShaderNodeSeparateRGB')
 					mix_rgb_node_r = mat.node_tree.nodes.new(type='ShaderNodeMixRGB')
 					mix_rgb_node_g = mat.node_tree.nodes.new(type='ShaderNodeMixRGB')
 					mix_rgb_node_b = mat.node_tree.nodes.new(type='ShaderNodeMixRGB')
@@ -1234,44 +1234,44 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 
 					uv_map_node1.uv_map = "UV3Map"
 					normal_map_node1.uv_map = "UV3Map"
-					normal_map_node1.inputs[0].default_value = 0.15
+					normal_map_node1.inputs['Strength'].default_value = 0.15
 
 					mix_rgb_node.blend_type = "OVERLAY"
-					mix_rgb_node.inputs[1].default_value = materialDiffuse
+					mix_rgb_node.inputs['Color1'].default_value = materialDiffuse
 
-					mix_rgb_node_r.inputs[1].default_value = (0, 0, 0, 0)
-					mix_rgb_node_g.inputs[1].default_value = (0, 0, 0, 0)
-					mix_rgb_node_b.inputs[1].default_value = (0, 0, 0, 0)
+					mix_rgb_node_r.inputs['Color1'].default_value = (0, 0, 0, 0)
+					mix_rgb_node_g.inputs['Color1'].default_value = (0, 0, 0, 0)
+					mix_rgb_node_b.inputs['Color1'].default_value = (0, 0, 0, 0)
 
-					mix_rgb_node_r.inputs[2].default_value = LightmappedLightsRedChannelColour
-					mix_rgb_node_g.inputs[2].default_value = LightmappedLightsGreenChannelColour
-					mix_rgb_node_b.inputs[2].default_value = LightmappedLightsBlueChannelColour
+					mix_rgb_node_r.inputs['Color2'].default_value = LightmappedLightsRedChannelColour
+					mix_rgb_node_g.inputs['Color2'].default_value = LightmappedLightsGreenChannelColour
+					mix_rgb_node_b.inputs['Color2'].default_value = LightmappedLightsBlueChannelColour
 
-					mat.node_tree.links.new(LightmapLightsTextureSampler_tex.outputs[0], separete_rgb_node1.inputs[0])
+					mat.node_tree.links.new(LightmapLightsTextureSampler_tex.outputs['Color'], separate_rgb_node1.inputs['Image'])
 
-					mat.node_tree.links.new(separete_rgb_node1.outputs[0], mix_rgb_node_r.inputs[0])
-					mat.node_tree.links.new(separete_rgb_node1.outputs[1], mix_rgb_node_g.inputs[0])
-					mat.node_tree.links.new(separete_rgb_node1.outputs[2], mix_rgb_node_b.inputs[0])
+					mat.node_tree.links.new(separate_rgb_node1.outputs['R'], mix_rgb_node_r.inputs['Fac'])
+					mat.node_tree.links.new(separate_rgb_node1.outputs['G'], mix_rgb_node_g.inputs['Fac'])
+					mat.node_tree.links.new(separate_rgb_node1.outputs['B'], mix_rgb_node_b.inputs['Fac'])
 
-					mat.node_tree.links.new(mix_rgb_node_r.outputs[0], mix_rgb_node1.inputs[1])
-					mat.node_tree.links.new(mix_rgb_node_g.outputs[0], mix_rgb_node1.inputs[2])
+					mat.node_tree.links.new(mix_rgb_node_r.outputs['Color'], mix_rgb_node1.inputs['Color1'])
+					mat.node_tree.links.new(mix_rgb_node_g.outputs['Color'], mix_rgb_node1.inputs['Color2'])
 
-					mat.node_tree.links.new(mix_rgb_node1.outputs[0], mix_rgb_node2.inputs[1])
-					mat.node_tree.links.new(mix_rgb_node_b.outputs[0], mix_rgb_node2.inputs[2])
+					mat.node_tree.links.new(mix_rgb_node1.outputs['Color'], mix_rgb_node2.inputs['Color1'])
+					mat.node_tree.links.new(mix_rgb_node_b.outputs['Color'], mix_rgb_node2.inputs['Color2'])
 
-					mat.node_tree.links.new(mix_rgb_node2.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[19])
-					mat.node_tree.nodes[mMaterialId].inputs[20].default_value = mSelfIlluminationMultiplier[0]*10.0
+					mat.node_tree.links.new(mix_rgb_node2.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Emission'])
+					mat.node_tree.nodes[mMaterialId].inputs['Emission Strength'].default_value = mSelfIlluminationMultiplier[0]*10.0
 
-					mat.node_tree.links.new(uv_map_node1.outputs[0], DiffuseTextureSampler_tex.inputs[0])
-					mat.node_tree.links.new(uv_map_node1.outputs[0], NormalTextureSampler_tex.inputs[0])
+					mat.node_tree.links.new(uv_map_node1.outputs['UV'], DiffuseTextureSampler_tex.inputs['Vector'])
+					mat.node_tree.links.new(uv_map_node1.outputs['UV'], NormalTextureSampler_tex.inputs['Vector'])
 
-					mat.node_tree.links.new(NormalTextureSampler_tex.outputs[0], normal_map_node1.inputs[1])
-					mat.node_tree.links.new(normal_map_node1.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[22])
+					mat.node_tree.links.new(NormalTextureSampler_tex.outputs['Color'], normal_map_node1.inputs['Color'])
+					mat.node_tree.links.new(normal_map_node1.outputs['Normal'], mat.node_tree.nodes[mMaterialId].inputs['Normal'])
 
-					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs[1], mix_rgb_node.inputs[0])
-					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs[0], mix_rgb_node.inputs[2])
-					mat.node_tree.links.new(mix_rgb_node.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[0])
-					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs[1], mat.node_tree.nodes[mMaterialId].inputs[21])
+					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs['Alpha'], mix_rgb_node.inputs['Fac'])
+					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs['Color'], mix_rgb_node.inputs['Color2'])
+					mat.node_tree.links.new(mix_rgb_node.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Base Color'])
+					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs['Alpha'], mat.node_tree.nodes[mMaterialId].inputs['Alpha'])
 
 					mat.blend_method = 'OPAQUE'
 					mat.shadow_method = 'NONE'
@@ -1285,13 +1285,13 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 
 					mix_rgb_node.blend_type = "OVERLAY"
 
-					mix_rgb_node.inputs[1].default_value = materialDiffuse
-					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs[1], mix_rgb_node.inputs[0])
-					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs[0], mix_rgb_node.inputs[2])
-					mat.node_tree.links.new(mix_rgb_node.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[0])
+					mix_rgb_node.inputs['Color1'].default_value = materialDiffuse
+					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs['Alpha'], mix_rgb_node.inputs['Fac'])
+					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs['Color'], mix_rgb_node.inputs['Color2'])
+					mat.node_tree.links.new(mix_rgb_node.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Base Color'])
 
-					mat.node_tree.nodes[mMaterialId].inputs[6].default_value = 0.5
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 0.25
+					mat.node_tree.nodes[mMaterialId].inputs['Metallic'].default_value = 0.5
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 0.25
 
 					mat.blend_method = 'HASHED'
 					mat.shadow_method = 'HASHED'
@@ -1304,49 +1304,49 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 					LightmappedLightsGreenChannelColour = parameters_Data[parameters_Names.index("LightmappedLightsGreenChannelColour")]
 					LightmappedLightsBlueChannelColour  = parameters_Data[parameters_Names.index("LightmappedLightsBlueChannelColour")]
 
-					separete_rgb_node1 = mat.node_tree.nodes.new(type='ShaderNodeSeparateRGB')
+					separate_rgb_node1 = mat.node_tree.nodes.new(type='ShaderNodeSeparateRGB')
 					mix_rgb_node_r = mat.node_tree.nodes.new(type='ShaderNodeMixRGB')
 					mix_rgb_node_g = mat.node_tree.nodes.new(type='ShaderNodeMixRGB')
 					mix_rgb_node_b = mat.node_tree.nodes.new(type='ShaderNodeMixRGB')
 					mix_rgb_node1 = mat.node_tree.nodes.new(type='ShaderNodeMixRGB')
 					mix_rgb_node2 = mat.node_tree.nodes.new(type='ShaderNodeMixRGB')
 
-					mix_rgb_node_r.inputs[1].default_value = (0, 0, 0, 0)
-					mix_rgb_node_g.inputs[1].default_value = (0, 0, 0, 0)
-					mix_rgb_node_b.inputs[1].default_value = (0, 0, 0, 0)
+					mix_rgb_node_r.inputs['Color1'].default_value = (0, 0, 0, 0)
+					mix_rgb_node_g.inputs['Color1'].default_value = (0, 0, 0, 0)
+					mix_rgb_node_b.inputs['Color1'].default_value = (0, 0, 0, 0)
 
-					mix_rgb_node_r.inputs[2].default_value = LightmappedLightsRedChannelColour
-					mix_rgb_node_g.inputs[2].default_value = LightmappedLightsGreenChannelColour
-					mix_rgb_node_b.inputs[2].default_value = LightmappedLightsBlueChannelColour
+					mix_rgb_node_r.inputs['Color2'].default_value = LightmappedLightsRedChannelColour
+					mix_rgb_node_g.inputs['Color2'].default_value = LightmappedLightsGreenChannelColour
+					mix_rgb_node_b.inputs['Color2'].default_value = LightmappedLightsBlueChannelColour
 
-					mat.node_tree.links.new(LightmapLightsTextureSampler_tex.outputs[0], separete_rgb_node1.inputs[0])
+					mat.node_tree.links.new(LightmapLightsTextureSampler_tex.outputs['Color'], separate_rgb_node1.inputs['Image'])
 
-					mat.node_tree.links.new(separete_rgb_node1.outputs[0], mix_rgb_node_r.inputs[0])
-					mat.node_tree.links.new(separete_rgb_node1.outputs[1], mix_rgb_node_g.inputs[0])
-					mat.node_tree.links.new(separete_rgb_node1.outputs[2], mix_rgb_node_b.inputs[0])
+					mat.node_tree.links.new(separate_rgb_node1.outputs['R'], mix_rgb_node_r.inputs['Fac'])
+					mat.node_tree.links.new(separate_rgb_node1.outputs['G'], mix_rgb_node_g.inputs['Fac'])
+					mat.node_tree.links.new(separate_rgb_node1.outputs['B'], mix_rgb_node_b.inputs['Fac'])
 
-					mat.node_tree.links.new(mix_rgb_node_r.outputs[0], mix_rgb_node1.inputs[1])
-					mat.node_tree.links.new(mix_rgb_node_g.outputs[0], mix_rgb_node1.inputs[2])
+					mat.node_tree.links.new(mix_rgb_node_r.outputs['Color'], mix_rgb_node1.inputs['Color1'])
+					mat.node_tree.links.new(mix_rgb_node_g.outputs['Color'], mix_rgb_node1.inputs['Color2'])
 
-					mat.node_tree.links.new(mix_rgb_node1.outputs[0], mix_rgb_node2.inputs[1])
-					mat.node_tree.links.new(mix_rgb_node_b.outputs[0], mix_rgb_node2.inputs[2])
+					mat.node_tree.links.new(mix_rgb_node1.outputs['Color'], mix_rgb_node2.inputs['Color1'])
+					mat.node_tree.links.new(mix_rgb_node_b.outputs['Color'], mix_rgb_node2.inputs['Color2'])
 
-					mat.node_tree.links.new(mix_rgb_node2.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[19])
-					mat.node_tree.nodes[mMaterialId].inputs[20].default_value = mSelfIlluminationMultiplier[0]*10.0
+					mat.node_tree.links.new(mix_rgb_node2.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Emission'])
+					mat.node_tree.nodes[mMaterialId].inputs['Emission Strength'].default_value = mSelfIlluminationMultiplier[0]*10.0
 
-					mat.node_tree.nodes[mMaterialId].inputs[6].default_value = 0.5
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 0.25
+					mat.node_tree.nodes[mMaterialId].inputs['Metallic'].default_value = 0.5
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 0.25
 
 				elif shader_type == "Vehicle_Opaque_Textured_NormalMapped_Reflective_LocalEmissive_AO":
 					EmissiveTextureSampler_tex = mat.node_tree.nodes['EmissiveTextureSampler']
 
 					mSelfIlluminationMultiplier = parameters_Data[parameters_Names.index("mSelfIlluminationMultiplier")]
 
-					mat.node_tree.links.new(EmissiveTextureSampler_tex.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[19])
-					mat.node_tree.nodes[mMaterialId].inputs[20].default_value = mSelfIlluminationMultiplier[0]*1.0
+					mat.node_tree.links.new(EmissiveTextureSampler_tex.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Emission'])
+					mat.node_tree.nodes[mMaterialId].inputs['Emission Strength'].default_value = mSelfIlluminationMultiplier[0]*1.0
 
-					mat.node_tree.nodes[mMaterialId].inputs[6].default_value = 0.5
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 0.25
+					mat.node_tree.nodes[mMaterialId].inputs['Metallic'].default_value = 0.5
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 0.25
 
 				elif shader_type == "Vehicle_Opaque_Textured_NormalMapped_Reflective_Emissive_AO_Livery":
 					DiffuseTextureSampler_tex = mat.node_tree.nodes['DiffuseTextureSampler']
@@ -1363,56 +1363,56 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 
 					uv_map_node1.uv_map = "UV3Map"
 					normal_map_node1.uv_map = "UV3Map"
-					normal_map_node1.inputs[0].default_value = 0.15
+					normal_map_node1.inputs['Strength'].default_value = 0.15
 
-					separete_rgb_node1 = mat.node_tree.nodes.new(type='ShaderNodeSeparateRGB')
+					separate_rgb_node1 = mat.node_tree.nodes.new(type='ShaderNodeSeparateRGB')
 					mix_rgb_node_r = mat.node_tree.nodes.new(type='ShaderNodeMixRGB')
 					mix_rgb_node_g = mat.node_tree.nodes.new(type='ShaderNodeMixRGB')
 					mix_rgb_node_b = mat.node_tree.nodes.new(type='ShaderNodeMixRGB')
 					mix_rgb_node1 = mat.node_tree.nodes.new(type='ShaderNodeMixRGB')
 					mix_rgb_node2 = mat.node_tree.nodes.new(type='ShaderNodeMixRGB')
 
-					mix_rgb_node_r.inputs[1].default_value = (0, 0, 0, 0)
-					mix_rgb_node_g.inputs[1].default_value = (0, 0, 0, 0)
-					mix_rgb_node_b.inputs[1].default_value = (0, 0, 0, 0)
+					mix_rgb_node_r.inputs['Color1'].default_value = (0, 0, 0, 0)
+					mix_rgb_node_g.inputs['Color1'].default_value = (0, 0, 0, 0)
+					mix_rgb_node_b.inputs['Color1'].default_value = (0, 0, 0, 0)
 
-					mix_rgb_node_r.inputs[2].default_value = LightmappedLightsRedChannelColour
-					mix_rgb_node_g.inputs[2].default_value = LightmappedLightsGreenChannelColour
-					mix_rgb_node_b.inputs[2].default_value = LightmappedLightsBlueChannelColour
+					mix_rgb_node_r.inputs['Color2'].default_value = LightmappedLightsRedChannelColour
+					mix_rgb_node_g.inputs['Color2'].default_value = LightmappedLightsGreenChannelColour
+					mix_rgb_node_b.inputs['Color2'].default_value = LightmappedLightsBlueChannelColour
 
-					mat.node_tree.links.new(LightmapLightsTextureSampler_tex.outputs[0], separete_rgb_node1.inputs[0])
+					mat.node_tree.links.new(LightmapLightsTextureSampler_tex.outputs['Color'], separate_rgb_node1.inputs['Image'])
 
-					mat.node_tree.links.new(separete_rgb_node1.outputs[0], mix_rgb_node_r.inputs[0])
-					mat.node_tree.links.new(separete_rgb_node1.outputs[1], mix_rgb_node_g.inputs[0])
-					mat.node_tree.links.new(separete_rgb_node1.outputs[2], mix_rgb_node_b.inputs[0])
+					mat.node_tree.links.new(separate_rgb_node1.outputs['R'], mix_rgb_node_r.inputs['Fac'])
+					mat.node_tree.links.new(separate_rgb_node1.outputs['G'], mix_rgb_node_g.inputs['Fac'])
+					mat.node_tree.links.new(separate_rgb_node1.outputs['B'], mix_rgb_node_b.inputs['Fac'])
 
-					mat.node_tree.links.new(mix_rgb_node_r.outputs[0], mix_rgb_node1.inputs[1])
-					mat.node_tree.links.new(mix_rgb_node_g.outputs[0], mix_rgb_node1.inputs[2])
+					mat.node_tree.links.new(mix_rgb_node_r.outputs['Color'], mix_rgb_node1.inputs['Color1'])
+					mat.node_tree.links.new(mix_rgb_node_g.outputs['Color'], mix_rgb_node1.inputs['Color2'])
 
-					mat.node_tree.links.new(mix_rgb_node1.outputs[0], mix_rgb_node2.inputs[1])
-					mat.node_tree.links.new(mix_rgb_node_b.outputs[0], mix_rgb_node2.inputs[2])
+					mat.node_tree.links.new(mix_rgb_node1.outputs['Color'], mix_rgb_node2.inputs['Color1'])
+					mat.node_tree.links.new(mix_rgb_node_b.outputs['Color'], mix_rgb_node2.inputs['Color2'])
 
-					mat.node_tree.links.new(mix_rgb_node2.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[19])
-					mat.node_tree.nodes[mMaterialId].inputs[20].default_value = mSelfIlluminationMultiplier[0]*1.0
+					mat.node_tree.links.new(mix_rgb_node2.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Emission'])
+					mat.node_tree.nodes[mMaterialId].inputs['Emission Strength'].default_value = mSelfIlluminationMultiplier[0]*1.0
 
-					mat.node_tree.links.new(uv_map_node1.outputs[0], DiffuseTextureSampler_tex.inputs[0])
-					mat.node_tree.links.new(uv_map_node1.outputs[0], NormalTextureSampler_tex.inputs[0])
+					mat.node_tree.links.new(uv_map_node1.outputs['UV'], DiffuseTextureSampler_tex.inputs['Vector'])
+					mat.node_tree.links.new(uv_map_node1.outputs['UV'], NormalTextureSampler_tex.inputs['Vector'])
 
-					#mat.node_tree.links.new(NormalTextureSampler_tex.outputs[0], normal_map_node1.inputs[1])
-					#mat.node_tree.links.new(normal_map_node1.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[22])
-					mat.node_tree.links.new(NormalTextureSampler_tex.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[22])
+					#mat.node_tree.links.new(NormalTextureSampler_tex.outputs['Color'], normal_map_node1.inputs['Color'])
+					#mat.node_tree.links.new(normal_map_node1.outputs['Normal'], mat.node_tree.nodes[mMaterialId].inputs['Normal'])
+					mat.node_tree.links.new(NormalTextureSampler_tex.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Normal'])
 
-					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs[1], mat.node_tree.nodes[mMaterialId].inputs[21])
+					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs['Alpha'], mat.node_tree.nodes[mMaterialId].inputs['Alpha'])
 
-					mat.node_tree.nodes[mMaterialId].inputs[6].default_value = 0.5
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 0.25
+					mat.node_tree.nodes[mMaterialId].inputs['Metallic'].default_value = 0.5
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 0.25
 
 					mat.blend_method = 'HASHED'
 					mat.shadow_method = 'HASHED'
 
 				elif shader_type == "Vehicle_Opaque_Textured_Phong":
-					mat.node_tree.nodes[mMaterialId].inputs[6].default_value = 0.0
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 1.0
+					mat.node_tree.nodes[mMaterialId].inputs['Metallic'].default_value = 0.0
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 1.0
 
 				elif shader_type == "Vehicle_Opaque_Two_PaintGloss_Textured_LightmappedLights_Livery":
 					DiffuseTextureSampler_tex = mat.node_tree.nodes['DiffuseTextureSampler']
@@ -1424,17 +1424,17 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 					mix_rgb_node.blend_type = "MIX"
 
 					if random_color == True:
-						mix_rgb_node.inputs[1].default_value = RGBA_random
+						mix_rgb_node.inputs['Color1'].default_value = RGBA_random
 					else:
-						mix_rgb_node.inputs[1].default_value = (0.8, 0.8, 0.8, 1.0)
+						mix_rgb_node.inputs['Color1'].default_value = (0.8, 0.8, 0.8, 1.0)
 
-					mat.node_tree.links.new(uv_map_node1.outputs[0], DiffuseTextureSampler_tex.inputs[0])
-					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs[1], mix_rgb_node.inputs[0])
-					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs[0], mix_rgb_node.inputs[2])
-					mat.node_tree.links.new(mix_rgb_node.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[0])
+					mat.node_tree.links.new(uv_map_node1.outputs['UV'], DiffuseTextureSampler_tex.inputs['Vector'])
+					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs['Alpha'], mix_rgb_node.inputs['Fac'])
+					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs['Color'], mix_rgb_node.inputs['Color2'])
+					mat.node_tree.links.new(mix_rgb_node.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Base Color'])
 
-					mat.node_tree.nodes[mMaterialId].inputs[6].default_value = 0.75
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 0.25
+					mat.node_tree.nodes[mMaterialId].inputs['Metallic'].default_value = 0.75
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 0.25
 
 				elif shader_type == "Vehicle_Opaque_Two_PaintGloss_Textured_LightmappedLights_Livery_Wrap":
 					DiffuseTextureSampler_tex = mat.node_tree.nodes['DiffuseTextureSampler']
@@ -1446,17 +1446,17 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 					mix_rgb_node.blend_type = "MIX"
 
 					if random_color == True:
-						mix_rgb_node.inputs[1].default_value = RGBA_random
+						mix_rgb_node.inputs['Color1'].default_value = RGBA_random
 					else:
-						mix_rgb_node.inputs[1].default_value = (0.8, 0.8, 0.8, 1.0)
+						mix_rgb_node.inputs['Color1'].default_value = (0.8, 0.8, 0.8, 1.0)
 
-					mat.node_tree.links.new(uv_map_node1.outputs[0], DiffuseTextureSampler_tex.inputs[0])
-					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs[1], mix_rgb_node.inputs[0])
-					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs[0], mix_rgb_node.inputs[2])
-					mat.node_tree.links.new(mix_rgb_node.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[0])
+					mat.node_tree.links.new(uv_map_node1.outputs['UV'], DiffuseTextureSampler_tex.inputs['Vector'])
+					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs['Alpha'], mix_rgb_node.inputs['Fac'])
+					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs['Color'], mix_rgb_node.inputs['Color2'])
+					mat.node_tree.links.new(mix_rgb_node.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Base Color'])
 
-					mat.node_tree.nodes[mMaterialId].inputs[6].default_value = 0.75
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 0.25
+					mat.node_tree.nodes[mMaterialId].inputs['Metallic'].default_value = 0.75
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 0.25
 
 				elif shader_type == "Vehicle_Rearlights_Heightmap":
 					DiffuseSampler_tex = mat.node_tree.nodes['DiffuseSampler']
@@ -1470,7 +1470,7 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 					ReversingColour  = parameters_Data[parameters_Names.index("ReversingColour")]
 					#TaillightColour = parameters_Data[parameters_Names.index("TaillightColour")]
 
-					separete_rgb_node1 = mat.node_tree.nodes.new(type='ShaderNodeSeparateRGB')
+					separate_rgb_node1 = mat.node_tree.nodes.new(type='ShaderNodeSeparateRGB')
 					mix_rgb_node_r = mat.node_tree.nodes.new(type='ShaderNodeMixRGB')
 					mix_rgb_node_g = mat.node_tree.nodes.new(type='ShaderNodeMixRGB')
 					mix_rgb_node_b = mat.node_tree.nodes.new(type='ShaderNodeMixRGB')
@@ -1485,49 +1485,49 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 					vector_math_node1.operation = "REFRACT"
 					vector_math_node1.inputs[3].default_value = 1.1
 
-					mix_rgb_node_r.inputs[1].default_value = (0, 0, 0, 0)
-					mix_rgb_node_g.inputs[1].default_value = (0, 0, 0, 0)
-					mix_rgb_node_b.inputs[1].default_value = (0, 0, 0, 0)
+					mix_rgb_node_r.inputs['Color1'].default_value = (0, 0, 0, 0)
+					mix_rgb_node_g.inputs['Color1'].default_value = (0, 0, 0, 0)
+					mix_rgb_node_b.inputs['Color1'].default_value = (0, 0, 0, 0)
 
-					mix_rgb_node_r.inputs[2].default_value = BrakeColour
-					mix_rgb_node_g.inputs[2].default_value = RunningColour
-					mix_rgb_node_b.inputs[2].default_value = ReversingColour
+					mix_rgb_node_r.inputs['Color2'].default_value = BrakeColour
+					mix_rgb_node_g.inputs['Color2'].default_value = RunningColour
+					mix_rgb_node_b.inputs['Color2'].default_value = ReversingColour
 
-					mat.node_tree.links.new(EmissiveTextureSampler_tex.outputs[0], separete_rgb_node1.inputs[0])
+					mat.node_tree.links.new(EmissiveTextureSampler_tex.outputs['Color'], separate_rgb_node1.inputs['Image'])
 
-					mat.node_tree.links.new(separete_rgb_node1.outputs[0], mix_rgb_node_r.inputs[0])
-					mat.node_tree.links.new(separete_rgb_node1.outputs[1], mix_rgb_node_g.inputs[0])
-					mat.node_tree.links.new(separete_rgb_node1.outputs[2], mix_rgb_node_b.inputs[0])
+					mat.node_tree.links.new(separate_rgb_node1.outputs['R'], mix_rgb_node_r.inputs['Fac'])
+					mat.node_tree.links.new(separate_rgb_node1.outputs['G'], mix_rgb_node_g.inputs['Fac'])
+					mat.node_tree.links.new(separate_rgb_node1.outputs['B'], mix_rgb_node_b.inputs['Fac'])
 
-					mat.node_tree.links.new(mix_rgb_node_r.outputs[0], mix_rgb_node1.inputs[1])
-					mat.node_tree.links.new(mix_rgb_node_g.outputs[0], mix_rgb_node1.inputs[2])
+					mat.node_tree.links.new(mix_rgb_node_r.outputs['Color'], mix_rgb_node1.inputs['Color1'])
+					mat.node_tree.links.new(mix_rgb_node_g.outputs['Color'], mix_rgb_node1.inputs['Color2'])
 
-					mat.node_tree.links.new(mix_rgb_node1.outputs[0], mix_rgb_node2.inputs[1])
-					mat.node_tree.links.new(mix_rgb_node_b.outputs[0], mix_rgb_node2.inputs[2])
+					mat.node_tree.links.new(mix_rgb_node1.outputs['Color'], mix_rgb_node2.inputs['Color1'])
+					mat.node_tree.links.new(mix_rgb_node_b.outputs['Color'], mix_rgb_node2.inputs['Color2'])
 
-					mat.node_tree.links.new(mix_rgb_node2.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[19])
-					mat.node_tree.nodes[mMaterialId].inputs[20].default_value = mSelfIlluminationBrightness[0]*10.0
+					mat.node_tree.links.new(mix_rgb_node2.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Emission'])
+					mat.node_tree.nodes[mMaterialId].inputs['Emission Strength'].default_value = mSelfIlluminationBrightness[0]*10.0
 
-					mat.node_tree.links.new(InternalNormalTextureSampler_tex.outputs[0], normal_map_node1.inputs[1])
-					mat.node_tree.links.new(ExternalNormalTextureSampler_tex.outputs[0], normal_map_node2.inputs[1])
+					mat.node_tree.links.new(InternalNormalTextureSampler_tex.outputs['Color'], normal_map_node1.inputs['Color'])
+					mat.node_tree.links.new(ExternalNormalTextureSampler_tex.outputs['Color'], normal_map_node2.inputs['Color'])
 
-					mat.node_tree.links.new(normal_map_node1.outputs[0], vector_math_node1.inputs[0])
-					mat.node_tree.links.new(normal_map_node2.outputs[0], vector_math_node1.inputs[1])
+					mat.node_tree.links.new(normal_map_node1.outputs['Normal'], vector_math_node1.inputs[0])
+					mat.node_tree.links.new(normal_map_node2.outputs['Normal'], vector_math_node1.inputs[1])
 
-					mat.node_tree.links.new(vector_math_node1.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[22])
+					mat.node_tree.links.new(vector_math_node1.outputs['Vector'], mat.node_tree.nodes[mMaterialId].inputs['Normal'])
 
-					mat.node_tree.links.new(DiffuseSampler_tex.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[0])
+					mat.node_tree.links.new(DiffuseSampler_tex.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Base Color'])
 
-					mat.node_tree.nodes[mMaterialId].inputs[6].default_value = 0.2
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 0.3
+					mat.node_tree.nodes[mMaterialId].inputs['Metallic'].default_value = 0.2
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 0.3
 
 				elif shader_type == "Vehicle_Wheel_1Bit_Alpha":
 					DiffuseTextureSampler_tex = mat.node_tree.nodes['DiffuseTextureSampler']
 
-					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs[1], mat.node_tree.nodes[mMaterialId].inputs[21])
+					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs['Alpha'], mat.node_tree.nodes[mMaterialId].inputs['Alpha'])
 
-					mat.node_tree.nodes[mMaterialId].inputs[6].default_value = 0.5
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 0.4
+					mat.node_tree.nodes[mMaterialId].inputs['Metallic'].default_value = 0.5
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 0.4
 
 					mat.blend_method = 'HASHED'
 					mat.shadow_method = 'HASHED'
@@ -1541,13 +1541,13 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 
 					mix_rgb_node.blend_type = "OVERLAY"
 
-					mix_rgb_node.inputs[1].default_value = mMaterialDiffuse
-					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs[1], mix_rgb_node.inputs[0])
-					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs[0], mix_rgb_node.inputs[2])
-					mat.node_tree.links.new(mix_rgb_node.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[0])
+					mix_rgb_node.inputs['Color1'].default_value = mMaterialDiffuse
+					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs['Alpha'], mix_rgb_node.inputs['Fac'])
+					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs['Color'], mix_rgb_node.inputs['Color2'])
+					mat.node_tree.links.new(mix_rgb_node.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Base Color'])
 
-					mat.node_tree.nodes[mMaterialId].inputs[6].default_value = 0.5
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 0.5
+					mat.node_tree.nodes[mMaterialId].inputs['Metallic'].default_value = 0.5
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 0.5
 
 					mat.blend_method = 'HASHED'
 					mat.shadow_method = 'HASHED'
@@ -1555,10 +1555,10 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 				elif shader_type == "Vehicle_Wheel_Alpha_Normalmap":
 					DiffuseTextureSampler_tex = mat.node_tree.nodes['DiffuseTextureSampler']
 
-					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs[1], mat.node_tree.nodes[mMaterialId].inputs[21])
+					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs['Alpha'], mat.node_tree.nodes[mMaterialId].inputs['Alpha'])
 
-					mat.node_tree.nodes[mMaterialId].inputs[6].default_value = 0.8
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 0.2
+					mat.node_tree.nodes[mMaterialId].inputs['Metallic'].default_value = 0.8
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 0.2
 
 					mat.blend_method = 'HASHED'
 					mat.shadow_method = 'HASHED'
@@ -1566,10 +1566,10 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 				elif shader_type == "Vehicle_Wheel_Alpha_Blur_Normalmap":
 					DiffuseTextureSampler_tex = mat.node_tree.nodes['DiffuseTextureSampler']
 
-					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs[1], mat.node_tree.nodes[mMaterialId].inputs[21])
+					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs['Alpha'], mat.node_tree.nodes[mMaterialId].inputs['Alpha'])
 
-					mat.node_tree.nodes[mMaterialId].inputs[6].default_value = 0.8
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 0.2
+					mat.node_tree.nodes[mMaterialId].inputs['Metallic'].default_value = 0.8
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 0.2
 
 					mat.blend_method = 'HASHED'
 					mat.shadow_method = 'HASHED'
@@ -1579,20 +1579,20 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 					NormalTextureSampler_tex = mat.node_tree.nodes['NormalTextureSampler']
 					SpecularAndAOTextureSampler_tex = mat.node_tree.nodes['SpecularAndAOTextureSampler']
 
-					mat.node_tree.links.new(SpecularAndAOTextureSampler_tex.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[7])
-					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs[1], mat.node_tree.nodes[mMaterialId].inputs[21])
+					mat.node_tree.links.new(SpecularAndAOTextureSampler_tex.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Specular'])
+					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs['Alpha'], mat.node_tree.nodes[mMaterialId].inputs['Alpha'])
 
-					mat.node_tree.links.new(NormalTextureSampler_tex.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[22])
+					mat.node_tree.links.new(NormalTextureSampler_tex.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Normal'])
 
-					mat.node_tree.nodes[mMaterialId].inputs[6].default_value = 0.0
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 1.0
+					mat.node_tree.nodes[mMaterialId].inputs['Metallic'].default_value = 0.0
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 1.0
 
 					mat.blend_method = 'HASHED'
 					mat.shadow_method = 'HASHED'
 
 				elif shader_type == "Vehicle_Wheel_Opaque":
-					mat.node_tree.nodes[mMaterialId].inputs[6].default_value = 0.8
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 0.2
+					mat.node_tree.nodes[mMaterialId].inputs['Metallic'].default_value = 0.8
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 0.2
 
 				elif shader_type == "Vehicle_Tyre":
 					NormalTextureSampler_tex = mat.node_tree.nodes['NormalTextureSampler']
@@ -1601,14 +1601,14 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 					normal_map_node1 = mat.node_tree.nodes.new(type='ShaderNodeNormalMap')
 
 					normal_map_node1.uv_map = "UVMap"
-					normal_map_node1.inputs[0].default_value = 0.4
+					normal_map_node1.inputs['Strength'].default_value = 0.4
 
-					mat.node_tree.links.new(NormalTextureSampler_tex.outputs[0], normal_map_node1.inputs[1])
-					mat.node_tree.links.new(normal_map_node1.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[22])
+					mat.node_tree.links.new(NormalTextureSampler_tex.outputs['Color'], normal_map_node1.inputs['Color'])
+					mat.node_tree.links.new(normal_map_node1.outputs['Normal'], mat.node_tree.nodes[mMaterialId].inputs['Normal'])
 
-					mat.node_tree.nodes[mMaterialId].inputs[6].default_value = 0.0
-					mat.node_tree.nodes[mMaterialId].inputs[7].default_value = mSpecularControls[0]
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 1.0
+					mat.node_tree.nodes[mMaterialId].inputs['Metallic'].default_value = 0.0
+					mat.node_tree.nodes[mMaterialId].inputs['Specular'].default_value = mSpecularControls[0]
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 1.0
 
 				elif "Vehicle" in shader_type:
 					print("DEBUG: shader type %s, used on material %s, still does not have its shading set." % (shader_type, mMaterialId))
@@ -1617,122 +1617,122 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 				elif shader_type == "Character_Greyscale_Textured_Doublesided_Skin":
 					DiffuseTextureSampler_tex = mat.node_tree.nodes['DiffuseTextureSampler']
 
-					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs[1], mat.node_tree.nodes[mMaterialId].inputs[21])
+					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs['Alpha'], mat.node_tree.nodes[mMaterialId].inputs['Alpha'])
 
 					mat.blend_method = 'BLEND'
 					mat.shadow_method = 'HASHED'
 
-					mat.node_tree.nodes[mMaterialId].inputs[7].default_value = 0.0
+					mat.node_tree.nodes[mMaterialId].inputs['Specular'].default_value = 0.0
 
 				elif shader_type == "Character_Opaque_Textured_NormalMap_SpecMap_Skin":
 					#Removing normal link
-					if len(mat.node_tree.nodes[mMaterialId].inputs[22].links) > 0:
-						link = mat.node_tree.nodes[mMaterialId].inputs[22].links[0]
+					if len(mat.node_tree.nodes[mMaterialId].inputs['Normal'].links) > 0:
+						link = mat.node_tree.nodes[mMaterialId].inputs['Normal'].links[0]
 						mat.node_tree.links.remove(link)
 
-					mat.node_tree.nodes[mMaterialId].inputs[6].default_value = 0.2
-					mat.node_tree.nodes[mMaterialId].inputs[7].default_value = 0.1
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 0.4
+					mat.node_tree.nodes[mMaterialId].inputs['Metallic'].default_value = 0.2
+					mat.node_tree.nodes[mMaterialId].inputs['Specular'].default_value = 0.1
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 0.4
 
 				# World
 				elif shader_type == "Armco_Opaque_Doublesided":
-					mat.node_tree.nodes[mMaterialId].inputs[6].default_value = 0.4
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 0.6
+					mat.node_tree.nodes[mMaterialId].inputs['Metallic'].default_value = 0.4
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 0.6
 
 					mat.use_backface_culling = False
 
 				elif shader_type == "Bush_Translucent_1Bit_Doublesided":
 					DiffuseTextureSampler_tex = mat.node_tree.nodes['DiffuseTextureSampler']
 
-					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs[1], mat.node_tree.nodes[mMaterialId].inputs[21])
+					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs['Alpha'], mat.node_tree.nodes[mMaterialId].inputs['Alpha'])
 
 					mat.blend_method = 'BLEND'
 					mat.shadow_method = 'HASHED'
 
 					mat.use_backface_culling = False
 
-					mat.node_tree.nodes[mMaterialId].inputs[6].default_value = 0.2
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 0.8
+					mat.node_tree.nodes[mMaterialId].inputs['Metallic'].default_value = 0.2
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 0.8
 
 				elif shader_type == "Bush_Translucent_1Bit_Normal_Spec_Doublesided":
 					DiffuseTextureSampler_tex = mat.node_tree.nodes['DiffuseTextureSampler']
 
-					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs[1], mat.node_tree.nodes[mMaterialId].inputs[21])
+					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs['Alpha'], mat.node_tree.nodes[mMaterialId].inputs['Alpha'])
 
 					mat.blend_method = 'BLEND'
 					mat.shadow_method = 'HASHED'
 
 					mat.use_backface_culling = False
 
-					mat.node_tree.nodes[mMaterialId].inputs[6].default_value = 0.2
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 0.8
+					mat.node_tree.nodes[mMaterialId].inputs['Metallic'].default_value = 0.2
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 0.8
 
 				elif shader_type == "CatsEyes":
 					DiffuseSampler_tex = mat.node_tree.nodes['DiffuseSampler']
 
 					SizeX_SizeY_DepthBias_Brightness = parameters_Data[parameters_Names.index("SizeX_SizeY_DepthBias_Brightness")]
 
-					mat.node_tree.links.new(DiffuseSampler_tex.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[0])
-					mat.node_tree.links.new(DiffuseSampler_tex.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[19])
-					mat.node_tree.links.new(DiffuseSampler_tex.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[21])
-					mat.node_tree.nodes[mMaterialId].inputs[6].default_value = 1.0
-					mat.node_tree.nodes[mMaterialId].inputs[7].default_value = 0.0
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 0.0
-					mat.node_tree.nodes[mMaterialId].inputs[20].default_value = SizeX_SizeY_DepthBias_Brightness[3]*10.0
+					mat.node_tree.links.new(DiffuseSampler_tex.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Base Color'])
+					mat.node_tree.links.new(DiffuseSampler_tex.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Emission'])
+					mat.node_tree.links.new(DiffuseSampler_tex.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Alpha'])
+					mat.node_tree.nodes[mMaterialId].inputs['Metallic'].default_value = 1.0
+					mat.node_tree.nodes[mMaterialId].inputs['Specular'].default_value = 0.0
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 0.0
+					mat.node_tree.nodes[mMaterialId].inputs['Emission Strength'].default_value = SizeX_SizeY_DepthBias_Brightness[3]*10.0
 
 				elif shader_type == "CatsEyesGeometry":
 					DiffuseTextureSampler_tex = mat.node_tree.nodes['DiffuseTextureSampler']
 
 					RetroreflectiveThreshold = parameters_Data[parameters_Names.index("RetroreflectiveThreshold")]
 
-					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[19])
-					mat.node_tree.nodes[mMaterialId].inputs[20].default_value = RetroreflectiveThreshold[0]*1.0
+					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Emission'])
+					mat.node_tree.nodes[mMaterialId].inputs['Emission Strength'].default_value = RetroreflectiveThreshold[0]*1.0
 
 				elif shader_type == "DEBUG_TRIGGER_Illuminance_Greyscale_Singlesided":
 					IlluminanceTextureSampler_tex = mat.node_tree.nodes['IlluminanceTextureSampler']
 
-					#mat.node_tree.links.new(IlluminanceTextureSampler_tex.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[19])
-					mat.node_tree.nodes[mMaterialId].inputs[19].default_value = (1.0, 0.0, 0.0, 1.0)
-					mat.node_tree.nodes[mMaterialId].inputs[20].default_value = 1.0
+					#mat.node_tree.links.new(IlluminanceTextureSampler_tex.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Emission'])
+					mat.node_tree.nodes[mMaterialId].inputs['Emission'].default_value = (1.0, 0.0, 0.0, 1.0)
+					mat.node_tree.nodes[mMaterialId].inputs['Emission Strength'].default_value = 1.0
 
-					mat.node_tree.nodes[mMaterialId].inputs[6].default_value = 0.3
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 0.5
+					mat.node_tree.nodes[mMaterialId].inputs['Metallic'].default_value = 0.3
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 0.5
 
 					mat.use_backface_culling = True
 
 				elif shader_type == "Deflicker_World_Diffuse_Normal_Specular_Singlesided":
-					mat.node_tree.nodes[mMaterialId].inputs[6].default_value = 0.1
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 1.0
+					mat.node_tree.nodes[mMaterialId].inputs['Metallic'].default_value = 0.1
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 1.0
 
 					mat.use_backface_culling = True
 
 				elif shader_type == "Deflicker_World_Diffuse_Normal_Specular_Overlay_Singlesided":
-					mat.node_tree.nodes[mMaterialId].inputs[6].default_value = 0.1
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 0.8
+					mat.node_tree.nodes[mMaterialId].inputs['Metallic'].default_value = 0.1
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 0.8
 
 					mat.use_backface_culling = True
 
 				elif shader_type == "Deflicker_World_Diffuse_Specular_Singlesided":
-					mat.node_tree.nodes[mMaterialId].inputs[6].default_value = 0.1
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 0.8
+					mat.node_tree.nodes[mMaterialId].inputs['Metallic'].default_value = 0.1
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 0.8
 
 					mat.use_backface_culling = True
 
 				elif shader_type == "Deflicker_World_Diffuse_Specular_Overlay_Singlesided":
-					mat.node_tree.nodes[mMaterialId].inputs[6].default_value = 0.1
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 0.8
+					mat.node_tree.nodes[mMaterialId].inputs['Metallic'].default_value = 0.1
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 0.8
 
 					mat.use_backface_culling = True
 
 				elif shader_type == "Deflicker_World_Diffuse_Specular_Overlay_IlluminanceNight_Singlesided":
 					IlluminanceTextureSampler_tex = mat.node_tree.nodes['IlluminanceTextureSampler']
 
-					mat.node_tree.links.new(IlluminanceTextureSampler_tex.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[19])
+					mat.node_tree.links.new(IlluminanceTextureSampler_tex.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Emission'])
 
-					mat.node_tree.nodes[mMaterialId].inputs[20].default_value = 0.6
+					mat.node_tree.nodes[mMaterialId].inputs['Emission Strength'].default_value = 0.6
 
-					mat.node_tree.nodes[mMaterialId].inputs[6].default_value = 0.3
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 0.5
+					mat.node_tree.nodes[mMaterialId].inputs['Metallic'].default_value = 0.3
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 0.5
 
 					mat.use_backface_culling = True
 
@@ -1748,7 +1748,7 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 
 					mix_rgb_node1 = mat.node_tree.nodes.new(type='ShaderNodeMixRGB')
 					mix_rgb_node2 = mat.node_tree.nodes.new(type='ShaderNodeMixRGB')
-					separete_rgb_node1 = mat.node_tree.nodes.new(type='ShaderNodeSeparateRGB')
+					separate_rgb_node1 = mat.node_tree.nodes.new(type='ShaderNodeSeparateRGB')
 					uv_map_node1 = mat.node_tree.nodes.new(type='ShaderNodeUVMap')
 					mapping_node1 = mat.node_tree.nodes.new(type='ShaderNodeMapping')
 					mapping_node2 = mat.node_tree.nodes.new(type='ShaderNodeMapping')
@@ -1761,10 +1761,10 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 					Tiling_Ratios_Y = parameters_Data[parameters_Names.index("Tiling_Ratios_Y")]
 					Tiling_Ratio_Noise = parameters_Data[parameters_Names.index("Tiling_Ratio_Noise")]
 
-					mat.node_tree.links.new(uv_map_node1.outputs[0], mapping_node1.inputs[0])
-					mat.node_tree.links.new(uv_map_node1.outputs[0], mapping_node2.inputs[0])
-					mat.node_tree.links.new(uv_map_node1.outputs[0], mapping_node3.inputs[0])
-					mat.node_tree.links.new(uv_map_node1.outputs[0], mapping_node4.inputs[0])
+					mat.node_tree.links.new(uv_map_node1.outputs['UV'], mapping_node1.inputs[0])
+					mat.node_tree.links.new(uv_map_node1.outputs['UV'], mapping_node2.inputs[0])
+					mat.node_tree.links.new(uv_map_node1.outputs['UV'], mapping_node3.inputs[0])
+					mat.node_tree.links.new(uv_map_node1.outputs['UV'], mapping_node4.inputs[0])
 
 					mapping_node1.inputs[3].default_value[0] = Tiling_Ratios_X[0]*1.0
 					mapping_node1.inputs[3].default_value[1] = Tiling_Ratios_Y[0]*1.0
@@ -1778,44 +1778,44 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 					mapping_node4.inputs[3].default_value[0] = Tiling_Ratio_Noise[0]*1.0
 					mapping_node4.inputs[3].default_value[1] = Tiling_Ratio_Noise[0]*1.0
 
-					mat.node_tree.links.new(mapping_node1.outputs[0], Tiling1TextureSampler_tex.inputs[0])
-					mat.node_tree.links.new(mapping_node2.outputs[0], Tiling2TextureSampler_tex.inputs[0])
-					mat.node_tree.links.new(mapping_node3.outputs[0], Tiling3TextureSampler_tex.inputs[0])
-					mat.node_tree.links.new(mapping_node4.outputs[0], NoiseTextureSampler_tex.inputs[0])
+					mat.node_tree.links.new(mapping_node1.outputs['Vector'], Tiling1TextureSampler_tex.inputs['Vector'])
+					mat.node_tree.links.new(mapping_node2.outputs['Vector'], Tiling2TextureSampler_tex.inputs['Vector'])
+					mat.node_tree.links.new(mapping_node3.outputs['Vector'], Tiling3TextureSampler_tex.inputs['Vector'])
+					mat.node_tree.links.new(mapping_node4.outputs['Vector'], NoiseTextureSampler_tex.inputs['Vector'])
 
-					mat.node_tree.links.new(MaskTextureSampler_tex.outputs[0], separete_rgb_node1.inputs[0])
+					mat.node_tree.links.new(MaskTextureSampler_tex.outputs['Color'], separate_rgb_node1.inputs['Image'])
 
-					mat.node_tree.links.new(separete_rgb_node1.outputs[2], mix_rgb_node1.inputs[0])
-					mat.node_tree.links.new(Tiling1TextureSampler_tex.outputs[0], mix_rgb_node1.inputs[1])
-					mat.node_tree.links.new(Tiling3TextureSampler_tex.outputs[0], mix_rgb_node1.inputs[2])
+					mat.node_tree.links.new(separate_rgb_node1.outputs['B'], mix_rgb_node1.inputs['Fac'])
+					mat.node_tree.links.new(Tiling1TextureSampler_tex.outputs['Color'], mix_rgb_node1.inputs['Color1'])
+					mat.node_tree.links.new(Tiling3TextureSampler_tex.outputs['Color'], mix_rgb_node1.inputs['Color2'])
 
-					mat.node_tree.links.new(separete_rgb_node1.outputs[0], mix_rgb_node2.inputs[0])
-					mat.node_tree.links.new(Tiling2TextureSampler_tex.outputs[0], mix_rgb_node2.inputs[1])
-					mat.node_tree.links.new(mix_rgb_node1.outputs[0], mix_rgb_node2.inputs[2])
+					mat.node_tree.links.new(separate_rgb_node1.outputs['R'], mix_rgb_node2.inputs['Fac'])
+					mat.node_tree.links.new(Tiling2TextureSampler_tex.outputs['Color'], mix_rgb_node2.inputs['Color1'])
+					mat.node_tree.links.new(mix_rgb_node1.outputs['Color'], mix_rgb_node2.inputs['Color2'])
 
-					mat.node_tree.links.new(mix_rgb_node2.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[0])
+					mat.node_tree.links.new(mix_rgb_node2.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Base Color'])
 
 					#Normal
 					mix_rgb_node11 = mat.node_tree.nodes.new(type='ShaderNodeMixRGB')
 					mix_rgb_node12 = mat.node_tree.nodes.new(type='ShaderNodeMixRGB')
 
-					mat.node_tree.links.new(mapping_node1.outputs[0], Tiling1NormalSampler_tex.inputs[0])
-					mat.node_tree.links.new(mapping_node2.outputs[0], Tiling2NormalSampler_tex.inputs[0])
-					mat.node_tree.links.new(mapping_node3.outputs[0], Tiling3NormalSampler_tex.inputs[0])
+					mat.node_tree.links.new(mapping_node1.outputs['Vector'], Tiling1NormalSampler_tex.inputs['Vector'])
+					mat.node_tree.links.new(mapping_node2.outputs['Vector'], Tiling2NormalSampler_tex.inputs['Vector'])
+					mat.node_tree.links.new(mapping_node3.outputs['Vector'], Tiling3NormalSampler_tex.inputs['Vector'])
 
-					mat.node_tree.links.new(separete_rgb_node1.outputs[2], mix_rgb_node11.inputs[0])
-					mat.node_tree.links.new(Tiling1NormalSampler_tex.outputs[0], mix_rgb_node11.inputs[1])
-					mat.node_tree.links.new(Tiling3NormalSampler_tex.outputs[0], mix_rgb_node11.inputs[2])
+					mat.node_tree.links.new(separate_rgb_node1.outputs['B'], mix_rgb_node11.inputs['Fac'])
+					mat.node_tree.links.new(Tiling1NormalSampler_tex.outputs['Color'], mix_rgb_node11.inputs['Color1'])
+					mat.node_tree.links.new(Tiling3NormalSampler_tex.outputs['Color'], mix_rgb_node11.inputs['Color2'])
 
-					mat.node_tree.links.new(separete_rgb_node1.outputs[0], mix_rgb_node12.inputs[0])
-					mat.node_tree.links.new(Tiling2NormalSampler_tex.outputs[0], mix_rgb_node12.inputs[1])
-					mat.node_tree.links.new(mix_rgb_node11.outputs[0], mix_rgb_node12.inputs[2])
+					mat.node_tree.links.new(separate_rgb_node1.outputs['R'], mix_rgb_node12.inputs['Fac'])
+					mat.node_tree.links.new(Tiling2NormalSampler_tex.outputs['Color'], mix_rgb_node12.inputs['Color1'])
+					mat.node_tree.links.new(mix_rgb_node11.outputs['Color'], mix_rgb_node12.inputs['Color2'])
 
-					mat.node_tree.links.new(mix_rgb_node12.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[22])
+					mat.node_tree.links.new(mix_rgb_node12.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Normal'])
 
 					#Shading
-					mat.node_tree.nodes[mMaterialId].inputs[7].default_value = 0.1
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 0.8
+					mat.node_tree.nodes[mMaterialId].inputs['Specular'].default_value = 0.1
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 0.8
 
 				elif shader_type == "DICETerrain3_Proto":
 					Tiling1TextureSampler_tex = mat.node_tree.nodes['Tiling1TextureSampler']
@@ -1835,7 +1835,7 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 					mix_rgb_node1 = mat.node_tree.nodes.new(type='ShaderNodeMixRGB')
 					mix_rgb_node2 = mat.node_tree.nodes.new(type='ShaderNodeMixRGB')
 					mix_rgb_node3 = mat.node_tree.nodes.new(type='ShaderNodeMixRGB')
-					separete_rgb_node1 = mat.node_tree.nodes.new(type='ShaderNodeSeparateRGB')
+					separate_rgb_node1 = mat.node_tree.nodes.new(type='ShaderNodeSeparateRGB')
 					uv_map_node1 = mat.node_tree.nodes.new(type='ShaderNodeUVMap')
 					uv_map_node2 = mat.node_tree.nodes.new(type='ShaderNodeUVMap')
 					mapping_node1 = mat.node_tree.nodes.new(type='ShaderNodeMapping')
@@ -1852,11 +1852,11 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 					Tiling_Ratio_Noise = parameters_Data[parameters_Names.index("Tiling_Ratio_Noise")]
 					Tiling_Ratios_Cliffs = parameters_Data[parameters_Names.index("Tiling_Ratios_Cliffs")]
 
-					mat.node_tree.links.new(uv_map_node1.outputs[0], mapping_node1.inputs[0])
-					mat.node_tree.links.new(uv_map_node1.outputs[0], mapping_node2.inputs[0])
-					mat.node_tree.links.new(uv_map_node1.outputs[0], mapping_node3.inputs[0])
-					mat.node_tree.links.new(uv_map_node1.outputs[0], mapping_node4.inputs[0])
-					mat.node_tree.links.new(uv_map_node2.outputs[0], mapping_node5.inputs[0])
+					mat.node_tree.links.new(uv_map_node1.outputs['UV'], mapping_node1.inputs[0])
+					mat.node_tree.links.new(uv_map_node1.outputs['UV'], mapping_node2.inputs[0])
+					mat.node_tree.links.new(uv_map_node1.outputs['UV'], mapping_node3.inputs[0])
+					mat.node_tree.links.new(uv_map_node1.outputs['UV'], mapping_node4.inputs[0])
+					mat.node_tree.links.new(uv_map_node2.outputs['UV'], mapping_node5.inputs[0])
 
 					mapping_node1.inputs[3].default_value[0] = Tiling_Ratios_X[0]*1.0
 					mapping_node1.inputs[3].default_value[1] = Tiling_Ratios_Y[0]*1.0
@@ -1873,55 +1873,55 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 					mapping_node5.inputs[3].default_value[0] = Tiling_Ratios_Cliffs[0]*1.0
 					mapping_node5.inputs[3].default_value[1] = Tiling_Ratios_Cliffs[1]*1.0
 
-					mat.node_tree.links.new(mapping_node1.outputs[0], Tiling1TextureSampler_tex.inputs[0])
-					mat.node_tree.links.new(mapping_node2.outputs[0], Tiling2TextureSampler_tex.inputs[0])
-					mat.node_tree.links.new(mapping_node3.outputs[0], Tiling3TextureSampler_tex.inputs[0])
-					mat.node_tree.links.new(mapping_node4.outputs[0], NoiseTextureSampler_tex.inputs[0])
-					mat.node_tree.links.new(mapping_node5.outputs[0], CliffTextureSampler_tex.inputs[0])
+					mat.node_tree.links.new(mapping_node1.outputs['Vector'], Tiling1TextureSampler_tex.inputs['Vector'])
+					mat.node_tree.links.new(mapping_node2.outputs['Vector'], Tiling2TextureSampler_tex.inputs['Vector'])
+					mat.node_tree.links.new(mapping_node3.outputs['Vector'], Tiling3TextureSampler_tex.inputs['Vector'])
+					mat.node_tree.links.new(mapping_node4.outputs['Vector'], NoiseTextureSampler_tex.inputs['Vector'])
+					mat.node_tree.links.new(mapping_node5.outputs['Vector'], CliffTextureSampler_tex.inputs['Vector'])
 
-					mat.node_tree.links.new(MaskTextureSampler_tex.outputs[0], separete_rgb_node1.inputs[0])
+					mat.node_tree.links.new(MaskTextureSampler_tex.outputs['Color'], separate_rgb_node1.inputs['Image'])
 
-					mat.node_tree.links.new(separete_rgb_node1.outputs[2], mix_rgb_node1.inputs[0])
-					mat.node_tree.links.new(Tiling1TextureSampler_tex.outputs[0], mix_rgb_node1.inputs[1])
-					mat.node_tree.links.new(Tiling3TextureSampler_tex.outputs[0], mix_rgb_node1.inputs[2])
+					mat.node_tree.links.new(separate_rgb_node1.outputs['B'], mix_rgb_node1.inputs['Fac'])
+					mat.node_tree.links.new(Tiling1TextureSampler_tex.outputs['Color'], mix_rgb_node1.inputs['Color1'])
+					mat.node_tree.links.new(Tiling3TextureSampler_tex.outputs['Color'], mix_rgb_node1.inputs['Color2'])
 
-					mat.node_tree.links.new(separete_rgb_node1.outputs[0], mix_rgb_node2.inputs[0])
-					mat.node_tree.links.new(Tiling2TextureSampler_tex.outputs[0], mix_rgb_node2.inputs[1])
-					mat.node_tree.links.new(mix_rgb_node1.outputs[0], mix_rgb_node2.inputs[2])
+					mat.node_tree.links.new(separate_rgb_node1.outputs['R'], mix_rgb_node2.inputs['Fac'])
+					mat.node_tree.links.new(Tiling2TextureSampler_tex.outputs['Color'], mix_rgb_node2.inputs['Color1'])
+					mat.node_tree.links.new(mix_rgb_node1.outputs['Color'], mix_rgb_node2.inputs['Color2'])
 
-					mat.node_tree.links.new(CliffMaskAndLightingTextureSampler_tex.outputs[0], mix_rgb_node3.inputs[0])
-					mat.node_tree.links.new(mix_rgb_node2.outputs[0], mix_rgb_node3.inputs[1])
-					mat.node_tree.links.new(CliffTextureSampler_tex.outputs[0], mix_rgb_node3.inputs[2])
+					mat.node_tree.links.new(CliffMaskAndLightingTextureSampler_tex.outputs['Color'], mix_rgb_node3.inputs['Fac'])
+					mat.node_tree.links.new(mix_rgb_node2.outputs['Color'], mix_rgb_node3.inputs['Color1'])
+					mat.node_tree.links.new(CliffTextureSampler_tex.outputs['Color'], mix_rgb_node3.inputs['Color2'])
 
-					mat.node_tree.links.new(mix_rgb_node3.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[0])
+					mat.node_tree.links.new(mix_rgb_node3.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Base Color'])
 
 					#Normal
 					mix_rgb_node11 = mat.node_tree.nodes.new(type='ShaderNodeMixRGB')
 					mix_rgb_node12 = mat.node_tree.nodes.new(type='ShaderNodeMixRGB')
 					mix_rgb_node13 = mat.node_tree.nodes.new(type='ShaderNodeMixRGB')
 
-					mat.node_tree.links.new(mapping_node1.outputs[0], Tiling1NormalSampler_tex.inputs[0])
-					mat.node_tree.links.new(mapping_node2.outputs[0], Tiling2NormalSampler_tex.inputs[0])
-					mat.node_tree.links.new(mapping_node3.outputs[0], Tiling3NormalSampler_tex.inputs[0])
-					mat.node_tree.links.new(mapping_node5.outputs[0], CliffNormalSampler_tex.inputs[0])
+					mat.node_tree.links.new(mapping_node1.outputs['Vector'], Tiling1NormalSampler_tex.inputs['Vector'])
+					mat.node_tree.links.new(mapping_node2.outputs['Vector'], Tiling2NormalSampler_tex.inputs['Vector'])
+					mat.node_tree.links.new(mapping_node3.outputs['Vector'], Tiling3NormalSampler_tex.inputs['Vector'])
+					mat.node_tree.links.new(mapping_node5.outputs['Vector'], CliffNormalSampler_tex.inputs['Vector'])
 
-					mat.node_tree.links.new(separete_rgb_node1.outputs[2], mix_rgb_node11.inputs[0])
-					mat.node_tree.links.new(Tiling1NormalSampler_tex.outputs[0], mix_rgb_node11.inputs[1])
-					mat.node_tree.links.new(Tiling3NormalSampler_tex.outputs[0], mix_rgb_node11.inputs[2])
+					mat.node_tree.links.new(separate_rgb_node1.outputs['B'], mix_rgb_node11.inputs['Fac'])
+					mat.node_tree.links.new(Tiling1NormalSampler_tex.outputs['Color'], mix_rgb_node11.inputs['Color1'])
+					mat.node_tree.links.new(Tiling3NormalSampler_tex.outputs['Color'], mix_rgb_node11.inputs['Color2'])
 
-					mat.node_tree.links.new(separete_rgb_node1.outputs[0], mix_rgb_node12.inputs[0])
-					mat.node_tree.links.new(Tiling2NormalSampler_tex.outputs[0], mix_rgb_node12.inputs[1])
-					mat.node_tree.links.new(mix_rgb_node11.outputs[0], mix_rgb_node12.inputs[2])
+					mat.node_tree.links.new(separate_rgb_node1.outputs['R'], mix_rgb_node12.inputs['Fac'])
+					mat.node_tree.links.new(Tiling2NormalSampler_tex.outputs['Color'], mix_rgb_node12.inputs['Color1'])
+					mat.node_tree.links.new(mix_rgb_node11.outputs['Color'], mix_rgb_node12.inputs['Color2'])
 
-					mat.node_tree.links.new(CliffMaskAndLightingTextureSampler_tex.outputs[0], mix_rgb_node13.inputs[0])
-					mat.node_tree.links.new(mix_rgb_node12.outputs[0], mix_rgb_node13.inputs[1])
-					mat.node_tree.links.new(CliffNormalSampler_tex.outputs[0], mix_rgb_node13.inputs[2])
+					mat.node_tree.links.new(CliffMaskAndLightingTextureSampler_tex.outputs['Color'], mix_rgb_node13.inputs['Fac'])
+					mat.node_tree.links.new(mix_rgb_node12.outputs['Color'], mix_rgb_node13.inputs['Color1'])
+					mat.node_tree.links.new(CliffNormalSampler_tex.outputs['Color'], mix_rgb_node13.inputs['Color2'])
 
-					mat.node_tree.links.new(mix_rgb_node13.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[22])
+					mat.node_tree.links.new(mix_rgb_node13.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Normal'])
 
 					#Shading
-					mat.node_tree.nodes[mMaterialId].inputs[7].default_value = 0.1
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 0.8
+					mat.node_tree.nodes[mMaterialId].inputs['Specular'].default_value = 0.1
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 0.8
 
 				elif shader_type == "DICETerrain3NoRGB_Proto":
 					Tiling1TextureSampler_tex = mat.node_tree.nodes['Tiling1TextureSampler']
@@ -1940,7 +1940,7 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 					mix_rgb_node1 = mat.node_tree.nodes.new(type='ShaderNodeMixRGB')
 					mix_rgb_node2 = mat.node_tree.nodes.new(type='ShaderNodeMixRGB')
 					mix_rgb_node3 = mat.node_tree.nodes.new(type='ShaderNodeMixRGB')
-					separete_rgb_node1 = mat.node_tree.nodes.new(type='ShaderNodeSeparateRGB')
+					separate_rgb_node1 = mat.node_tree.nodes.new(type='ShaderNodeSeparateRGB')
 					uv_map_node1 = mat.node_tree.nodes.new(type='ShaderNodeUVMap')
 					uv_map_node2 = mat.node_tree.nodes.new(type='ShaderNodeUVMap')
 					mapping_node1 = mat.node_tree.nodes.new(type='ShaderNodeMapping')
@@ -1957,11 +1957,11 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 					Tiling_Ratio_Noise = parameters_Data[parameters_Names.index("Tiling_Ratio_Noise")]
 					Tiling_Ratios_Cliffs = parameters_Data[parameters_Names.index("Tiling_Ratios_Cliffs")]
 
-					mat.node_tree.links.new(uv_map_node1.outputs[0], mapping_node1.inputs[0])
-					mat.node_tree.links.new(uv_map_node1.outputs[0], mapping_node2.inputs[0])
-					mat.node_tree.links.new(uv_map_node1.outputs[0], mapping_node3.inputs[0])
-					mat.node_tree.links.new(uv_map_node1.outputs[0], mapping_node4.inputs[0])
-					mat.node_tree.links.new(uv_map_node2.outputs[0], mapping_node5.inputs[0])
+					mat.node_tree.links.new(uv_map_node1.outputs['UV'], mapping_node1.inputs[0])
+					mat.node_tree.links.new(uv_map_node1.outputs['UV'], mapping_node2.inputs[0])
+					mat.node_tree.links.new(uv_map_node1.outputs['UV'], mapping_node3.inputs[0])
+					mat.node_tree.links.new(uv_map_node1.outputs['UV'], mapping_node4.inputs[0])
+					mat.node_tree.links.new(uv_map_node2.outputs['UV'], mapping_node5.inputs[0])
 
 					mapping_node1.inputs[3].default_value[0] = Tiling_Ratios_X[0]*1.0
 					mapping_node1.inputs[3].default_value[1] = Tiling_Ratios_Y[0]*1.0
@@ -1978,55 +1978,55 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 					mapping_node5.inputs[3].default_value[0] = Tiling_Ratios_Cliffs[0]*1.0
 					mapping_node5.inputs[3].default_value[1] = Tiling_Ratios_Cliffs[1]*1.0
 
-					mat.node_tree.links.new(mapping_node1.outputs[0], Tiling1TextureSampler_tex.inputs[0])
-					mat.node_tree.links.new(mapping_node2.outputs[0], Tiling2TextureSampler_tex.inputs[0])
-					mat.node_tree.links.new(mapping_node3.outputs[0], Tiling3TextureSampler_tex.inputs[0])
-					mat.node_tree.links.new(mapping_node4.outputs[0], NoiseTextureSampler_tex.inputs[0])
-					mat.node_tree.links.new(mapping_node5.outputs[0], CliffTextureSampler_tex.inputs[0])
+					mat.node_tree.links.new(mapping_node1.outputs['Vector'], Tiling1TextureSampler_tex.inputs['Vector'])
+					mat.node_tree.links.new(mapping_node2.outputs['Vector'], Tiling2TextureSampler_tex.inputs['Vector'])
+					mat.node_tree.links.new(mapping_node3.outputs['Vector'], Tiling3TextureSampler_tex.inputs['Vector'])
+					mat.node_tree.links.new(mapping_node4.outputs['Vector'], NoiseTextureSampler_tex.inputs['Vector'])
+					mat.node_tree.links.new(mapping_node5.outputs['Vector'], CliffTextureSampler_tex.inputs['Vector'])
 
-					mat.node_tree.links.new(MaskTextureSampler_tex.outputs[0], separete_rgb_node1.inputs[0])
+					mat.node_tree.links.new(MaskTextureSampler_tex.outputs['Color'], separate_rgb_node1.inputs['Image'])
 
-					mat.node_tree.links.new(separete_rgb_node1.outputs[2], mix_rgb_node1.inputs[0])
-					mat.node_tree.links.new(Tiling1TextureSampler_tex.outputs[0], mix_rgb_node1.inputs[1])
-					mat.node_tree.links.new(Tiling3TextureSampler_tex.outputs[0], mix_rgb_node1.inputs[2])
+					mat.node_tree.links.new(separate_rgb_node1.outputs['B'], mix_rgb_node1.inputs['Fac'])
+					mat.node_tree.links.new(Tiling1TextureSampler_tex.outputs['Color'], mix_rgb_node1.inputs['Color1'])
+					mat.node_tree.links.new(Tiling3TextureSampler_tex.outputs['Color'], mix_rgb_node1.inputs['Color2'])
 
-					mat.node_tree.links.new(separete_rgb_node1.outputs[0], mix_rgb_node2.inputs[0])
-					mat.node_tree.links.new(Tiling2TextureSampler_tex.outputs[0], mix_rgb_node2.inputs[1])
-					mat.node_tree.links.new(mix_rgb_node1.outputs[0], mix_rgb_node2.inputs[2])
+					mat.node_tree.links.new(separate_rgb_node1.outputs['R'], mix_rgb_node2.inputs['Fac'])
+					mat.node_tree.links.new(Tiling2TextureSampler_tex.outputs['Color'], mix_rgb_node2.inputs['Color1'])
+					mat.node_tree.links.new(mix_rgb_node1.outputs['Color'], mix_rgb_node2.inputs['Color2'])
 
-					mat.node_tree.links.new(CliffMaskAndLightingTextureSampler_tex.outputs[0], mix_rgb_node3.inputs[0])
-					mat.node_tree.links.new(mix_rgb_node2.outputs[0], mix_rgb_node3.inputs[1])
-					mat.node_tree.links.new(CliffTextureSampler_tex.outputs[0], mix_rgb_node3.inputs[2])
+					mat.node_tree.links.new(CliffMaskAndLightingTextureSampler_tex.outputs['Color'], mix_rgb_node3.inputs['Fac'])
+					mat.node_tree.links.new(mix_rgb_node2.outputs['Color'], mix_rgb_node3.inputs['Color1'])
+					mat.node_tree.links.new(CliffTextureSampler_tex.outputs['Color'], mix_rgb_node3.inputs['Color2'])
 
-					mat.node_tree.links.new(mix_rgb_node3.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[0])
+					mat.node_tree.links.new(mix_rgb_node3.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Base Color'])
 
 					#Normal
 					mix_rgb_node11 = mat.node_tree.nodes.new(type='ShaderNodeMixRGB')
 					mix_rgb_node12 = mat.node_tree.nodes.new(type='ShaderNodeMixRGB')
 					mix_rgb_node13 = mat.node_tree.nodes.new(type='ShaderNodeMixRGB')
 
-					mat.node_tree.links.new(mapping_node1.outputs[0], Tiling1NormalSampler_tex.inputs[0])
-					mat.node_tree.links.new(mapping_node2.outputs[0], Tiling2NormalSampler_tex.inputs[0])
-					mat.node_tree.links.new(mapping_node3.outputs[0], Tiling3NormalSampler_tex.inputs[0])
-					mat.node_tree.links.new(mapping_node5.outputs[0], CliffNormalSampler_tex.inputs[0])
+					mat.node_tree.links.new(mapping_node1.outputs['Vector'], Tiling1NormalSampler_tex.inputs['Vector'])
+					mat.node_tree.links.new(mapping_node2.outputs['Vector'], Tiling2NormalSampler_tex.inputs['Vector'])
+					mat.node_tree.links.new(mapping_node3.outputs['Vector'], Tiling3NormalSampler_tex.inputs['Vector'])
+					mat.node_tree.links.new(mapping_node5.outputs['Vector'], CliffNormalSampler_tex.inputs['Vector'])
 
-					mat.node_tree.links.new(separete_rgb_node1.outputs[2], mix_rgb_node11.inputs[0])
-					mat.node_tree.links.new(Tiling1NormalSampler_tex.outputs[0], mix_rgb_node11.inputs[1])
-					mat.node_tree.links.new(Tiling3NormalSampler_tex.outputs[0], mix_rgb_node11.inputs[2])
+					mat.node_tree.links.new(separate_rgb_node1.outputs['B'], mix_rgb_node11.inputs['Fac'])
+					mat.node_tree.links.new(Tiling1NormalSampler_tex.outputs['Color'], mix_rgb_node11.inputs['Color1'])
+					mat.node_tree.links.new(Tiling3NormalSampler_tex.outputs['Color'], mix_rgb_node11.inputs['Color2'])
 
-					mat.node_tree.links.new(separete_rgb_node1.outputs[0], mix_rgb_node12.inputs[0])
-					mat.node_tree.links.new(Tiling2NormalSampler_tex.outputs[0], mix_rgb_node12.inputs[1])
-					mat.node_tree.links.new(mix_rgb_node11.outputs[0], mix_rgb_node12.inputs[2])
+					mat.node_tree.links.new(separate_rgb_node1.outputs['R'], mix_rgb_node12.inputs['Fac'])
+					mat.node_tree.links.new(Tiling2NormalSampler_tex.outputs['Color'], mix_rgb_node12.inputs['Color1'])
+					mat.node_tree.links.new(mix_rgb_node11.outputs['Color'], mix_rgb_node12.inputs['Color2'])
 
-					mat.node_tree.links.new(CliffMaskAndLightingTextureSampler_tex.outputs[0], mix_rgb_node13.inputs[0])
-					mat.node_tree.links.new(mix_rgb_node12.outputs[0], mix_rgb_node13.inputs[1])
-					mat.node_tree.links.new(CliffNormalSampler_tex.outputs[0], mix_rgb_node13.inputs[2])
+					mat.node_tree.links.new(CliffMaskAndLightingTextureSampler_tex.outputs['Color'], mix_rgb_node13.inputs['Fac'])
+					mat.node_tree.links.new(mix_rgb_node12.outputs['Color'], mix_rgb_node13.inputs['Color1'])
+					mat.node_tree.links.new(CliffNormalSampler_tex.outputs['Color'], mix_rgb_node13.inputs['Color2'])
 
-					mat.node_tree.links.new(mix_rgb_node13.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[22])
+					mat.node_tree.links.new(mix_rgb_node13.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Normal'])
 
 					#Shading
-					mat.node_tree.nodes[mMaterialId].inputs[7].default_value = 0.1
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 0.8
+					mat.node_tree.nodes[mMaterialId].inputs['Specular'].default_value = 0.1
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 0.8
 
 				elif shader_type == "DICETerrain3CliffsOnly_Proto":
 					CliffTextureSampler_tex = mat.node_tree.nodes['CliffTextureSampler']
@@ -2042,59 +2042,59 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 
 					Tiling_Ratios_Cliffs = parameters_Data[parameters_Names.index("Tiling_Ratios_Cliffs")]
 
-					mat.node_tree.links.new(uv_map_node2.outputs[0], mapping_node5.inputs[0])
+					mat.node_tree.links.new(uv_map_node2.outputs['UV'], mapping_node5.inputs[0])
 
 					mapping_node5.inputs[3].default_value[0] = Tiling_Ratios_Cliffs[0]*1.0
 					mapping_node5.inputs[3].default_value[1] = Tiling_Ratios_Cliffs[1]*1.0
 
-					mat.node_tree.links.new(mapping_node5.outputs[0], CliffTextureSampler_tex.inputs[0])
+					mat.node_tree.links.new(mapping_node5.outputs['Vector'], CliffTextureSampler_tex.inputs['Vector'])
 
-					mat.node_tree.links.new(CliffTextureSampler_tex.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[0])
+					mat.node_tree.links.new(CliffTextureSampler_tex.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Base Color'])
 
 					#Normal
 					mix_rgb_node11 = mat.node_tree.nodes.new(type='ShaderNodeMixRGB')
 
-					mat.node_tree.links.new(mapping_node5.outputs[0], CliffNormalSampler_tex.inputs[0])
+					mat.node_tree.links.new(mapping_node5.outputs['Vector'], CliffNormalSampler_tex.inputs['Vector'])
 
-					mat.node_tree.links.new(NormalTextureSampler_tex.outputs[0], mix_rgb_node11.inputs[1])
-					mat.node_tree.links.new(CliffNormalSampler_tex.outputs[0], mix_rgb_node11.inputs[2])
+					mat.node_tree.links.new(NormalTextureSampler_tex.outputs['Color'], mix_rgb_node11.inputs['Color1'])
+					mat.node_tree.links.new(CliffNormalSampler_tex.outputs['Color'], mix_rgb_node11.inputs['Color2'])
 
-					mat.node_tree.links.new(mix_rgb_node11.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[22])
+					mat.node_tree.links.new(mix_rgb_node11.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Normal'])
 
 					#Shading
-					mat.node_tree.nodes[mMaterialId].inputs[7].default_value = 0.1
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 0.8
+					mat.node_tree.nodes[mMaterialId].inputs['Specular'].default_value = 0.1
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 0.8
 
 				elif shader_type == "DiffuseSpecmapNormalMap":
 					NormalTextureSampler_tex = mat.node_tree.nodes['NormalTextureSampler']
 
-					mat.node_tree.links.new(NormalTextureSampler_tex.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[22])
+					mat.node_tree.links.new(NormalTextureSampler_tex.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Normal'])
 
-					mat.node_tree.nodes[mMaterialId].inputs[6].default_value = 0.0
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 0.6
+					mat.node_tree.nodes[mMaterialId].inputs['Metallic'].default_value = 0.0
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 0.6
 
 				elif shader_type == "DiffuseSpecmapNormalMap_DirtMap":
 					NormalTextureSampler_tex = mat.node_tree.nodes['NormalTextureSampler']
 
-					mat.node_tree.links.new(NormalTextureSampler_tex.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[22])
+					mat.node_tree.links.new(NormalTextureSampler_tex.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Normal'])
 
-					mat.node_tree.nodes[mMaterialId].inputs[6].default_value = 0.0
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 0.6
+					mat.node_tree.nodes[mMaterialId].inputs['Metallic'].default_value = 0.0
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 0.6
 
 				elif shader_type == "DiffuseSpecmapNormalMap_Overlay":
 					NormalTextureSampler_tex = mat.node_tree.nodes['NormalTextureSampler']
 
-					mat.node_tree.links.new(NormalTextureSampler_tex.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[22])
+					mat.node_tree.links.new(NormalTextureSampler_tex.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Normal'])
 
-					mat.node_tree.nodes[mMaterialId].inputs[6].default_value = 0.0
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 0.6
+					mat.node_tree.nodes[mMaterialId].inputs['Metallic'].default_value = 0.0
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 0.6
 
 				elif shader_type == "DiffuseSpecNormalMap_1Bit":
 					DiffuseTextureSampler_tex = mat.node_tree.nodes['DiffuseTextureSampler']
 					NormalTextureSampler_tex = mat.node_tree.nodes['NormalTextureSampler']
 
-					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs[1], mat.node_tree.nodes[mMaterialId].inputs[21])
-					mat.node_tree.links.new(NormalTextureSampler_tex.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[22])
+					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs['Alpha'], mat.node_tree.nodes[mMaterialId].inputs['Alpha'])
+					mat.node_tree.links.new(NormalTextureSampler_tex.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Normal'])
 
 					mat.blend_method = 'HASHED'
 					mat.shadow_method = 'HASHED'
@@ -2102,45 +2102,45 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 				elif shader_type == "Diffuse_1Bit_Doublesided":
 					DiffuseTextureSampler_tex = mat.node_tree.nodes['DiffuseTextureSampler']
 
-					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs[1], mat.node_tree.nodes[mMaterialId].inputs[21])
+					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs['Alpha'], mat.node_tree.nodes[mMaterialId].inputs['Alpha'])
 
 					mat.blend_method = 'CLIP'
 					mat.shadow_method = 'HASHED'
 
 					mat.use_backface_culling = False
 
-					mat.node_tree.nodes[mMaterialId].inputs[7].default_value = 0.0
+					mat.node_tree.nodes[mMaterialId].inputs['Specular'].default_value = 0.0
 
 				elif shader_type == "Diffuse_1Bit_Doublesided_Skin":
 					DiffuseTextureSampler_tex = mat.node_tree.nodes['DiffuseTextureSampler']
 
-					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs[1], mat.node_tree.nodes[mMaterialId].inputs[21])
+					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs['Alpha'], mat.node_tree.nodes[mMaterialId].inputs['Alpha'])
 
 					mat.blend_method = 'HASHED'
 					mat.shadow_method = 'HASHED'
 
 					mat.use_backface_culling = False
 
-					mat.node_tree.nodes[mMaterialId].inputs[7].default_value = 0.0
+					mat.node_tree.nodes[mMaterialId].inputs['Specular'].default_value = 0.0
 
 				elif shader_type == "Diffuse_1Bit_Singlesided":
 					DiffuseTextureSampler_tex = mat.node_tree.nodes['DiffuseTextureSampler']
 
-					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs[1], mat.node_tree.nodes[mMaterialId].inputs[21])
+					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs['Alpha'], mat.node_tree.nodes[mMaterialId].inputs['Alpha'])
 
 					mat.blend_method = 'BLEND'
 					mat.shadow_method = 'HASHED'
 
 					mat.use_backface_culling = True
 
-					mat.node_tree.nodes[mMaterialId].inputs[7].default_value = 0.0
+					mat.node_tree.nodes[mMaterialId].inputs['Specular'].default_value = 0.0
 
 				elif shader_type == "Diffuse_Greyscale_Doublesided":
 					mat.use_backface_culling = False
 
-					mat.node_tree.nodes[mMaterialId].inputs[6].default_value = 0.0
-					mat.node_tree.nodes[mMaterialId].inputs[7].default_value = 0.2
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 0.8
+					mat.node_tree.nodes[mMaterialId].inputs['Metallic'].default_value = 0.0
+					mat.node_tree.nodes[mMaterialId].inputs['Specular'].default_value = 0.2
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 0.8
 
 				elif shader_type == "Diffuse_Opaque_Singlesided":
 					DiffuseTextureSampler_tex = mat.node_tree.nodes['DiffuseTextureSampler']
@@ -2151,18 +2151,18 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 
 					if DiffuseTextureSampler_tex.label in ("4A_4F_48_C0",):
 						mix_rgb_node1.blend_type = "OVERLAY"
-						#mix_rgb_node1.inputs[0].default_value = 0.5
-						mix_rgb_node1.inputs[1].default_value = materialDiffuse
+						#mix_rgb_node1.inputs['Fac'].default_value = 0.5
+						mix_rgb_node1.inputs['Color1'].default_value = materialDiffuse
 
-						mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs[0], mix_rgb_node1.inputs[2])
-						mat.node_tree.links.new(mix_rgb_node1.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[0])
+						mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs['Color'], mix_rgb_node1.inputs['Color2'])
+						mat.node_tree.links.new(mix_rgb_node1.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Base Color'])
 					else:
-						mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[0])
-						mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs[1], mat.node_tree.nodes[mMaterialId].inputs[21])
+						mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Base Color'])
+						mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs['Alpha'], mat.node_tree.nodes[mMaterialId].inputs['Alpha'])
 
-						mat.node_tree.nodes[mMaterialId].inputs[6].default_value = 0.0
-						mat.node_tree.nodes[mMaterialId].inputs[7].default_value = 0.0
-						mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 1.0
+						mat.node_tree.nodes[mMaterialId].inputs['Metallic'].default_value = 0.0
+						mat.node_tree.nodes[mMaterialId].inputs['Specular'].default_value = 0.0
+						mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 1.0
 
 						mat.blend_method = 'HASHED'
 						mat.shadow_method = 'HASHED'
@@ -2170,15 +2170,15 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 					mat.use_backface_culling = True
 
 				elif shader_type == "Diffuse_Opaque_Singlesided_ObjectAO":
-					mat.node_tree.nodes[mMaterialId].inputs[6].default_value = 0.0
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 0.7
+					mat.node_tree.nodes[mMaterialId].inputs['Metallic'].default_value = 0.0
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 0.7
 
 				elif shader_type == "Diffuse_Opaque_Singlesided_Skin":
 					DiffuseTextureSampler_tex = mat.node_tree.nodes['DiffuseTextureSampler']
 
 					materialDiffuse = parameters_Data[parameters_Names.index("materialDiffuse")]
 
-					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[0])
+					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Base Color'])
 					mat.use_backface_culling = True
 
 				elif shader_type == "DriveableSurface":
@@ -2206,26 +2206,26 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 					mix_rgb_node2.blend_type = "OVERLAY"
 					uv_map_node1.uv_map = "UVMap"
 					uv_map_node2.uv_map = "UV2Map"
-					mix_rgb_node2.inputs[2].default_value = OverlayB_Diffuse
+					mix_rgb_node2.inputs['Color2'].default_value = OverlayB_Diffuse
 
 					mapping_node1.inputs[3].default_value[0] = DetailMapUvScale[0]*10.0
 					mapping_node1.inputs[3].default_value[1] = DetailMapUvScale[1]*100.0
 
-					mat.node_tree.links.new(uv_map_node1.outputs[0], mapping_node1.inputs[0])
-					mat.node_tree.links.new(uv_map_node2.outputs[0], OverlayB_Sampler_tex.inputs[0])
+					mat.node_tree.links.new(uv_map_node1.outputs['UV'], mapping_node1.inputs[0])
+					mat.node_tree.links.new(uv_map_node2.outputs['UV'], OverlayB_Sampler_tex.inputs['Vector'])
 
-					mat.node_tree.links.new(mapping_node1.outputs[0], DetailMap_Diffuse_Sampler_tex.inputs[0])
+					mat.node_tree.links.new(mapping_node1.outputs['Vector'], DetailMap_Diffuse_Sampler_tex.inputs['Vector'])
 
-					mat.node_tree.links.new(OverlayA_Sampler_tex.outputs[0], mix_rgb_node1.inputs[0])
-					mat.node_tree.links.new(DetailMap_Diffuse_Sampler_tex.outputs[0], mix_rgb_node1.inputs[1])
-					mat.node_tree.links.new(ColourMap_Sampler_tex.outputs[0], mix_rgb_node1.inputs[2])
+					mat.node_tree.links.new(OverlayA_Sampler_tex.outputs['Color'], mix_rgb_node1.inputs['Fac'])
+					mat.node_tree.links.new(DetailMap_Diffuse_Sampler_tex.outputs['Color'], mix_rgb_node1.inputs['Color1'])
+					mat.node_tree.links.new(ColourMap_Sampler_tex.outputs['Color'], mix_rgb_node1.inputs['Color2'])
 
-					mat.node_tree.links.new(OverlayB_Sampler_tex.outputs[0], mix_rgb_node2.inputs[0])
-					mat.node_tree.links.new(mix_rgb_node1.outputs[0], mix_rgb_node2.inputs[1])
-					mat.node_tree.links.new(mix_rgb_node2.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[0])
+					mat.node_tree.links.new(OverlayB_Sampler_tex.outputs['Color'], mix_rgb_node2.inputs['Fac'])
+					mat.node_tree.links.new(mix_rgb_node1.outputs['Color'], mix_rgb_node2.inputs['Color1'])
+					mat.node_tree.links.new(mix_rgb_node2.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Base Color'])
 
-					mat.node_tree.nodes[mMaterialId].inputs[6].default_value = 0.5
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 0.8
+					mat.node_tree.nodes[mMaterialId].inputs['Metallic'].default_value = 0.5
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 0.8
 
 					#Normal
 					mix_rgb_node3 = mat.node_tree.nodes.new(type='ShaderNodeMixRGB')
@@ -2234,24 +2234,24 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 					normal_map_node2 = mat.node_tree.nodes.new(type='ShaderNodeNormalMap')
 					normal_map_node1.uv_map = "UVMap"
 					normal_map_node2.uv_map = "UVMap"
-					normal_map_node1.inputs[0].default_value = 0.48
-					normal_map_node2.inputs[0].default_value = 0.4
+					normal_map_node1.inputs['Strength'].default_value = 0.48
+					normal_map_node2.inputs['Strength'].default_value = 0.4
 
 					CrackMap_UScale_VScale_UOffset_VOffset = parameters_Data[parameters_Names.index("CrackMap_UScale_VScale_UOffset_VOffset")]
 
 					mapping_node2.inputs[3].default_value[0] = CrackMap_UScale_VScale_UOffset_VOffset[0]*1.0
 					mapping_node2.inputs[3].default_value[1] = CrackMap_UScale_VScale_UOffset_VOffset[1]*1.0
 
-					mat.node_tree.links.new(uv_map_node1.outputs[0], mapping_node2.inputs[0])
-					mat.node_tree.links.new(mapping_node1.outputs[0], DetailMap_Normal_Sampler_tex.inputs[0])
-					mat.node_tree.links.new(mapping_node2.outputs[0], Crack_Normal_Sampler_tex.inputs[0])
+					mat.node_tree.links.new(uv_map_node1.outputs['UV'], mapping_node2.inputs[0])
+					mat.node_tree.links.new(mapping_node1.outputs['Vector'], DetailMap_Normal_Sampler_tex.inputs['Vector'])
+					mat.node_tree.links.new(mapping_node2.outputs['Vector'], Crack_Normal_Sampler_tex.inputs['Vector'])
 
-					mat.node_tree.links.new(Crack_Normal_Sampler_tex.outputs[0], normal_map_node1.inputs[1])
-					mat.node_tree.links.new(DetailMap_Normal_Sampler_tex.outputs[0], normal_map_node2.inputs[1])
+					mat.node_tree.links.new(Crack_Normal_Sampler_tex.outputs['Color'], normal_map_node1.inputs['Color'])
+					mat.node_tree.links.new(DetailMap_Normal_Sampler_tex.outputs['Color'], normal_map_node2.inputs['Color'])
 
-					mat.node_tree.links.new(normal_map_node1.outputs[0], mix_rgb_node3.inputs[1])
-					mat.node_tree.links.new(normal_map_node2.outputs[0], mix_rgb_node3.inputs[2])
-					mat.node_tree.links.new(mix_rgb_node3.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[22])
+					mat.node_tree.links.new(normal_map_node1.outputs['Normal'], mix_rgb_node3.inputs['Color1'])
+					mat.node_tree.links.new(normal_map_node2.outputs['Normal'], mix_rgb_node3.inputs['Color2'])
+					mat.node_tree.links.new(mix_rgb_node3.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Normal'])
 
 				elif shader_type == "DriveableSurface_Car_Select_Simple":
 					ColourMap_Sampler_tex = mat.node_tree.nodes['ColourMap_Sampler']
@@ -2261,19 +2261,19 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 
 					mix_rgb_node1.blend_type = "OVERLAY"
 
-					mat.node_tree.links.new(ColourMap_Sampler_tex.outputs[1], mix_rgb_node1.inputs[0])
-					mat.node_tree.links.new(ColourMap_Sampler_tex.outputs[0], mix_rgb_node1.inputs[1])
-					mat.node_tree.links.new(mix_rgb_node1.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[0])
+					mat.node_tree.links.new(ColourMap_Sampler_tex.outputs['Alpha'], mix_rgb_node1.inputs['Fac'])
+					mat.node_tree.links.new(ColourMap_Sampler_tex.outputs['Color'], mix_rgb_node1.inputs['Color1'])
+					mat.node_tree.links.new(mix_rgb_node1.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Base Color'])
 
-					mat.node_tree.nodes[mMaterialId].inputs[6].default_value = 0.6
-					mat.node_tree.nodes[mMaterialId].inputs[7].default_value = 0.0
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 0.1
+					mat.node_tree.nodes[mMaterialId].inputs['Metallic'].default_value = 0.6
+					mat.node_tree.nodes[mMaterialId].inputs['Specular'].default_value = 0.0
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 0.1
 
 					normal_map_node1 = mat.node_tree.nodes.new(type='ShaderNodeNormalMap')
 					normal_map_node1.uv_map = "UVMap"
 
-					mat.node_tree.links.new(DetailMap_Normal_Sampler_tex.outputs[0], normal_map_node1.inputs[1])
-					mat.node_tree.links.new(normal_map_node1.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[22])
+					mat.node_tree.links.new(DetailMap_Normal_Sampler_tex.outputs['Color'], normal_map_node1.inputs['Color'])
+					mat.node_tree.links.new(normal_map_node1.outputs['Normal'], mat.node_tree.nodes[mMaterialId].inputs['Normal'])
 
 				elif shader_type == "DriveableSurface_Car_Select":
 					ColourMap_Sampler_tex = mat.node_tree.nodes['ColourMap_Sampler']
@@ -2300,27 +2300,27 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 					mix_rgb_node2.blend_type = "OVERLAY"
 					uv_map_node1.uv_map = "UVMap"
 					uv_map_node2.uv_map = "UV4Map"
-					mix_rgb_node2.inputs[2].default_value = OverlayB_Diffuse
+					mix_rgb_node2.inputs['Color2'].default_value = OverlayB_Diffuse
 
 					mapping_node1.inputs[3].default_value[0] = DetailMapUvScale[0]*1.0
 					mapping_node1.inputs[3].default_value[1] = DetailMapUvScale[1]*1.0
 
-					mat.node_tree.links.new(uv_map_node1.outputs[0], mapping_node1.inputs[0])
-					mat.node_tree.links.new(mapping_node1.outputs[0], DetailMap_Diffuse_Sampler_tex.inputs[0])
+					mat.node_tree.links.new(uv_map_node1.outputs['UV'], mapping_node1.inputs[0])
+					mat.node_tree.links.new(mapping_node1.outputs['Vector'], DetailMap_Diffuse_Sampler_tex.inputs['Vector'])
 
-					mat.node_tree.links.new(uv_map_node2.outputs[0], OverlayA_Sampler_tex.inputs[0])
+					mat.node_tree.links.new(uv_map_node2.outputs['UV'], OverlayA_Sampler_tex.inputs['Vector'])
 
-					mat.node_tree.links.new(OverlayA_Sampler_tex.outputs[0], mix_rgb_node1.inputs[0])
-					mat.node_tree.links.new(DetailMap_Diffuse_Sampler_tex.outputs[0], mix_rgb_node1.inputs[1])
-					mat.node_tree.links.new(ColourMap_Sampler_tex.outputs[0], mix_rgb_node1.inputs[2])
+					mat.node_tree.links.new(OverlayA_Sampler_tex.outputs['Color'], mix_rgb_node1.inputs['Fac'])
+					mat.node_tree.links.new(DetailMap_Diffuse_Sampler_tex.outputs['Color'], mix_rgb_node1.inputs['Color1'])
+					mat.node_tree.links.new(ColourMap_Sampler_tex.outputs['Color'], mix_rgb_node1.inputs['Color2'])
 
-					mat.node_tree.links.new(OverlayB_Sampler_tex.outputs[0], mix_rgb_node2.inputs[0])
-					mat.node_tree.links.new(mix_rgb_node1.outputs[0], mix_rgb_node2.inputs[1])
-					mat.node_tree.links.new(mix_rgb_node2.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[0])
+					mat.node_tree.links.new(OverlayB_Sampler_tex.outputs['Color'], mix_rgb_node2.inputs['Fac'])
+					mat.node_tree.links.new(mix_rgb_node1.outputs['Color'], mix_rgb_node2.inputs['Color1'])
+					mat.node_tree.links.new(mix_rgb_node2.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Base Color'])
 
-					mat.node_tree.nodes[mMaterialId].inputs[6].default_value = 0.6
-					mat.node_tree.nodes[mMaterialId].inputs[7].default_value = 0.0
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 0.1
+					mat.node_tree.nodes[mMaterialId].inputs['Metallic'].default_value = 0.6
+					mat.node_tree.nodes[mMaterialId].inputs['Specular'].default_value = 0.0
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 0.1
 
 					#Normal
 					mix_rgb_node3 = mat.node_tree.nodes.new(type='ShaderNodeMixRGB')
@@ -2329,24 +2329,24 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 					normal_map_node2 = mat.node_tree.nodes.new(type='ShaderNodeNormalMap')
 					normal_map_node1.uv_map = "UVMap"
 					normal_map_node2.uv_map = "UVMap"
-					normal_map_node1.inputs[0].default_value = 0.48
-					normal_map_node2.inputs[0].default_value = 0.4
+					normal_map_node1.inputs['Strength'].default_value = 0.48
+					normal_map_node2.inputs['Strength'].default_value = 0.4
 
 					CrackMap_UScale_VScale_UOffset_VOffset = parameters_Data[parameters_Names.index("CrackMap_UScale_VScale_UOffset_VOffset")]
 
 					mapping_node2.inputs[3].default_value[0] = CrackMap_UScale_VScale_UOffset_VOffset[0]*1.0
 					mapping_node2.inputs[3].default_value[1] = CrackMap_UScale_VScale_UOffset_VOffset[1]*1.0
 
-					mat.node_tree.links.new(uv_map_node1.outputs[0], mapping_node2.inputs[0])
-					mat.node_tree.links.new(mapping_node1.outputs[0], DetailMap_Normal_Sampler_tex.inputs[0])
-					mat.node_tree.links.new(mapping_node2.outputs[0], Crack_Normal_Sampler_tex.inputs[0])
+					mat.node_tree.links.new(uv_map_node1.outputs['UV'], mapping_node2.inputs[0])
+					mat.node_tree.links.new(mapping_node1.outputs['Vector'], DetailMap_Normal_Sampler_tex.inputs['Vector'])
+					mat.node_tree.links.new(mapping_node2.outputs['Vector'], Crack_Normal_Sampler_tex.inputs['Vector'])
 
-					mat.node_tree.links.new(Crack_Normal_Sampler_tex.outputs[0], normal_map_node1.inputs[1])
-					mat.node_tree.links.new(DetailMap_Normal_Sampler_tex.outputs[0], normal_map_node2.inputs[1])
+					mat.node_tree.links.new(Crack_Normal_Sampler_tex.outputs['Color'], normal_map_node1.inputs['Color'])
+					mat.node_tree.links.new(DetailMap_Normal_Sampler_tex.outputs['Color'], normal_map_node2.inputs['Color'])
 
-					mat.node_tree.links.new(normal_map_node1.outputs[0], mix_rgb_node3.inputs[1])
-					mat.node_tree.links.new(normal_map_node2.outputs[0], mix_rgb_node3.inputs[2])
-					mat.node_tree.links.new(mix_rgb_node3.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[22])
+					mat.node_tree.links.new(normal_map_node1.outputs['Normal'], mix_rgb_node3.inputs['Color1'])
+					mat.node_tree.links.new(normal_map_node2.outputs['Normal'], mix_rgb_node3.inputs['Color2'])
+					mat.node_tree.links.new(mix_rgb_node3.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Normal'])
 
 				elif shader_type == "DriveableSurface_CarPark":
 					ColourMap_Sampler_tex = mat.node_tree.nodes['ColourMap_Sampler']
@@ -2373,26 +2373,26 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 					mix_rgb_node2.blend_type = "OVERLAY"
 					uv_map_node1.uv_map = "UVMap"
 					uv_map_node2.uv_map = "UV4Map"
-					mix_rgb_node2.inputs[2].default_value = OverlayB_Diffuse
+					mix_rgb_node2.inputs['Color2'].default_value = OverlayB_Diffuse
 
 					mapping_node1.inputs[3].default_value[0] = DetailMapUvScale[0]*1.0
 					mapping_node1.inputs[3].default_value[1] = DetailMapUvScale[1]*1.0
 
-					mat.node_tree.links.new(uv_map_node1.outputs[0], mapping_node1.inputs[0])
-					mat.node_tree.links.new(mapping_node1.outputs[0], DetailMap_Diffuse_Sampler_tex.inputs[0])
+					mat.node_tree.links.new(uv_map_node1.outputs['UV'], mapping_node1.inputs[0])
+					mat.node_tree.links.new(mapping_node1.outputs['Vector'], DetailMap_Diffuse_Sampler_tex.inputs['Vector'])
 
-					mat.node_tree.links.new(uv_map_node2.outputs[0], OverlayA_Sampler_tex.inputs[0])
+					mat.node_tree.links.new(uv_map_node2.outputs['UV'], OverlayA_Sampler_tex.inputs['Vector'])
 
-					mat.node_tree.links.new(OverlayA_Sampler_tex.outputs[0], mix_rgb_node1.inputs[0])
-					mat.node_tree.links.new(DetailMap_Diffuse_Sampler_tex.outputs[0], mix_rgb_node1.inputs[1])
-					mat.node_tree.links.new(ColourMap_Sampler_tex.outputs[0], mix_rgb_node1.inputs[2])
+					mat.node_tree.links.new(OverlayA_Sampler_tex.outputs['Color'], mix_rgb_node1.inputs['Fac'])
+					mat.node_tree.links.new(DetailMap_Diffuse_Sampler_tex.outputs['Color'], mix_rgb_node1.inputs['Color1'])
+					mat.node_tree.links.new(ColourMap_Sampler_tex.outputs['Color'], mix_rgb_node1.inputs['Color2'])
 
-					mat.node_tree.links.new(OverlayB_Sampler_tex.outputs[0], mix_rgb_node2.inputs[0])
-					mat.node_tree.links.new(mix_rgb_node1.outputs[0], mix_rgb_node2.inputs[1])
-					mat.node_tree.links.new(mix_rgb_node2.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[0])
+					mat.node_tree.links.new(OverlayB_Sampler_tex.outputs['Color'], mix_rgb_node2.inputs['Fac'])
+					mat.node_tree.links.new(mix_rgb_node1.outputs['Color'], mix_rgb_node2.inputs['Color1'])
+					mat.node_tree.links.new(mix_rgb_node2.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Base Color'])
 
-					mat.node_tree.nodes[mMaterialId].inputs[6].default_value = 0.2
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 1.0
+					mat.node_tree.nodes[mMaterialId].inputs['Metallic'].default_value = 0.2
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 1.0
 
 					#Normal
 					mix_rgb_node3 = mat.node_tree.nodes.new(type='ShaderNodeMixRGB')
@@ -2401,24 +2401,24 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 					normal_map_node2 = mat.node_tree.nodes.new(type='ShaderNodeNormalMap')
 					normal_map_node1.uv_map = "UVMap"
 					normal_map_node2.uv_map = "UVMap"
-					normal_map_node1.inputs[0].default_value = 0.48
-					normal_map_node2.inputs[0].default_value = 0.4
+					normal_map_node1.inputs['Strength'].default_value = 0.48
+					normal_map_node2.inputs['Strength'].default_value = 0.4
 
 					CrackMap_UScale_VScale_UOffset_VOffset = parameters_Data[parameters_Names.index("CrackMap_UScale_VScale_UOffset_VOffset")]
 
 					mapping_node2.inputs[3].default_value[0] = CrackMap_UScale_VScale_UOffset_VOffset[0]*1.0
 					mapping_node2.inputs[3].default_value[1] = CrackMap_UScale_VScale_UOffset_VOffset[1]*1.0
 
-					mat.node_tree.links.new(uv_map_node1.outputs[0], mapping_node2.inputs[0])
-					mat.node_tree.links.new(mapping_node1.outputs[0], DetailMap_Normal_Sampler_tex.inputs[0])
-					mat.node_tree.links.new(mapping_node2.outputs[0], Crack_Normal_Sampler_tex.inputs[0])
+					mat.node_tree.links.new(uv_map_node1.outputs['UV'], mapping_node2.inputs[0])
+					mat.node_tree.links.new(mapping_node1.outputs['Vector'], DetailMap_Normal_Sampler_tex.inputs['Vector'])
+					mat.node_tree.links.new(mapping_node2.outputs['Vector'], Crack_Normal_Sampler_tex.inputs['Vector'])
 
-					mat.node_tree.links.new(Crack_Normal_Sampler_tex.outputs[0], normal_map_node1.inputs[1])
-					mat.node_tree.links.new(DetailMap_Normal_Sampler_tex.outputs[0], normal_map_node2.inputs[1])
+					mat.node_tree.links.new(Crack_Normal_Sampler_tex.outputs['Color'], normal_map_node1.inputs['Color'])
+					mat.node_tree.links.new(DetailMap_Normal_Sampler_tex.outputs['Color'], normal_map_node2.inputs['Color'])
 
-					mat.node_tree.links.new(normal_map_node1.outputs[0], mix_rgb_node3.inputs[1])
-					mat.node_tree.links.new(normal_map_node2.outputs[0], mix_rgb_node3.inputs[2])
-					mat.node_tree.links.new(mix_rgb_node3.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[22])
+					mat.node_tree.links.new(normal_map_node1.outputs['Normal'], mix_rgb_node3.inputs['Color1'])
+					mat.node_tree.links.new(normal_map_node2.outputs['Normal'], mix_rgb_node3.inputs['Color2'])
+					mat.node_tree.links.new(mix_rgb_node3.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Normal'])
 
 				elif shader_type == "DriveableSurface_Decal_CarPark":
 					ColourMap_Sampler_tex = mat.node_tree.nodes['ColourMap_Sampler']
@@ -2450,33 +2450,33 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 					uv_map_node1.uv_map = "UVMap"
 					uv_map_node2.uv_map = "UV4Map"
 					uv_map_node3.uv_map = "UV3Map"
-					mix_rgb_node2.inputs[2].default_value = OverlayB_Diffuse
+					mix_rgb_node2.inputs['Color2'].default_value = OverlayB_Diffuse
 
 					mapping_node1.inputs[3].default_value[0] = DetailMapUvScale[0]*1.0
 					mapping_node1.inputs[3].default_value[1] = DetailMapUvScale[1]*1.0
 
-					mat.node_tree.links.new(uv_map_node1.outputs[0], mapping_node1.inputs[0])
-					mat.node_tree.links.new(mapping_node1.outputs[0], DetailMap_Diffuse_Sampler_tex.inputs[0])
+					mat.node_tree.links.new(uv_map_node1.outputs['UV'], mapping_node1.inputs[0])
+					mat.node_tree.links.new(mapping_node1.outputs['Vector'], DetailMap_Diffuse_Sampler_tex.inputs['Vector'])
 
-					mat.node_tree.links.new(uv_map_node2.outputs[0], OverlayA_Sampler_tex.inputs[0])
-					mat.node_tree.links.new(uv_map_node3.outputs[0], Decal_Diffuse_Sampler_tex.inputs[0])
+					mat.node_tree.links.new(uv_map_node2.outputs['UV'], OverlayA_Sampler_tex.inputs['Vector'])
+					mat.node_tree.links.new(uv_map_node3.outputs['UV'], Decal_Diffuse_Sampler_tex.inputs['Vector'])
 
-					mat.node_tree.links.new(OverlayA_Sampler_tex.outputs[0], mix_rgb_node1.inputs[0])
-					mat.node_tree.links.new(DetailMap_Diffuse_Sampler_tex.outputs[0], mix_rgb_node1.inputs[1])
-					mat.node_tree.links.new(ColourMap_Sampler_tex.outputs[0], mix_rgb_node1.inputs[2])
+					mat.node_tree.links.new(OverlayA_Sampler_tex.outputs['Color'], mix_rgb_node1.inputs['Fac'])
+					mat.node_tree.links.new(DetailMap_Diffuse_Sampler_tex.outputs['Color'], mix_rgb_node1.inputs['Color1'])
+					mat.node_tree.links.new(ColourMap_Sampler_tex.outputs['Color'], mix_rgb_node1.inputs['Color2'])
 
-					mat.node_tree.links.new(OverlayB_Sampler_tex.outputs[0], mix_rgb_node2.inputs[0])
-					mat.node_tree.links.new(mix_rgb_node1.outputs[0], mix_rgb_node2.inputs[1])
-					mat.node_tree.links.new(mix_rgb_node2.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[0])
+					mat.node_tree.links.new(OverlayB_Sampler_tex.outputs['Color'], mix_rgb_node2.inputs['Fac'])
+					mat.node_tree.links.new(mix_rgb_node1.outputs['Color'], mix_rgb_node2.inputs['Color1'])
+					mat.node_tree.links.new(mix_rgb_node2.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Base Color'])
 
-					mat.node_tree.links.new(Decal_Diffuse_Sampler_tex.outputs[1], mix_rgb_node3.inputs[0])
-					mat.node_tree.links.new(mix_rgb_node2.outputs[0], mix_rgb_node3.inputs[1])
-					mat.node_tree.links.new(Decal_Diffuse_Sampler_tex.outputs[0], mix_rgb_node3.inputs[2])
+					mat.node_tree.links.new(Decal_Diffuse_Sampler_tex.outputs['Alpha'], mix_rgb_node3.inputs['Fac'])
+					mat.node_tree.links.new(mix_rgb_node2.outputs['Color'], mix_rgb_node3.inputs['Color1'])
+					mat.node_tree.links.new(Decal_Diffuse_Sampler_tex.outputs['Color'], mix_rgb_node3.inputs['Color2'])
 
-					mat.node_tree.links.new(mix_rgb_node3.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[0])
+					mat.node_tree.links.new(mix_rgb_node3.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Base Color'])
 
-					mat.node_tree.nodes[mMaterialId].inputs[6].default_value = 0.2
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 1.0
+					mat.node_tree.nodes[mMaterialId].inputs['Metallic'].default_value = 0.2
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 1.0
 
 					#Normal
 					mix_rgb_node11 = mat.node_tree.nodes.new(type='ShaderNodeMixRGB')
@@ -2485,24 +2485,24 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 					normal_map_node2 = mat.node_tree.nodes.new(type='ShaderNodeNormalMap')
 					normal_map_node1.uv_map = "UVMap"
 					normal_map_node2.uv_map = "UVMap"
-					normal_map_node1.inputs[0].default_value = 0.48
-					normal_map_node2.inputs[0].default_value = 0.4
+					normal_map_node1.inputs['Strength'].default_value = 0.48
+					normal_map_node2.inputs['Strength'].default_value = 0.4
 
 					CrackMap_UScale_VScale_UOffset_VOffset = parameters_Data[parameters_Names.index("CrackMap_UScale_VScale_UOffset_VOffset")]
 
 					mapping_node2.inputs[3].default_value[0] = CrackMap_UScale_VScale_UOffset_VOffset[0]*1.0
 					mapping_node2.inputs[3].default_value[1] = CrackMap_UScale_VScale_UOffset_VOffset[1]*1.0
 
-					mat.node_tree.links.new(uv_map_node1.outputs[0], mapping_node2.inputs[0])
-					mat.node_tree.links.new(mapping_node1.outputs[0], DetailMap_Normal_Sampler_tex.inputs[0])
-					mat.node_tree.links.new(mapping_node2.outputs[0], Crack_Normal_Sampler_tex.inputs[0])
+					mat.node_tree.links.new(uv_map_node1.outputs['UV'], mapping_node2.inputs[0])
+					mat.node_tree.links.new(mapping_node1.outputs['Vector'], DetailMap_Normal_Sampler_tex.inputs['Vector'])
+					mat.node_tree.links.new(mapping_node2.outputs['Vector'], Crack_Normal_Sampler_tex.inputs['Vector'])
 
-					mat.node_tree.links.new(Crack_Normal_Sampler_tex.outputs[0], normal_map_node1.inputs[1])
-					mat.node_tree.links.new(DetailMap_Normal_Sampler_tex.outputs[0], normal_map_node2.inputs[1])
+					mat.node_tree.links.new(Crack_Normal_Sampler_tex.outputs['Color'], normal_map_node1.inputs['Color'])
+					mat.node_tree.links.new(DetailMap_Normal_Sampler_tex.outputs['Color'], normal_map_node2.inputs['Color'])
 
-					mat.node_tree.links.new(normal_map_node1.outputs[0], mix_rgb_node11.inputs[1])
-					mat.node_tree.links.new(normal_map_node2.outputs[0], mix_rgb_node11.inputs[2])
-					mat.node_tree.links.new(mix_rgb_node11.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[22])
+					mat.node_tree.links.new(normal_map_node1.outputs['Normal'], mix_rgb_node11.inputs['Color1'])
+					mat.node_tree.links.new(normal_map_node2.outputs['Normal'], mix_rgb_node11.inputs['Color2'])
+					mat.node_tree.links.new(mix_rgb_node11.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Normal'])
 
 				elif shader_type == "DriveableSurface_AlphaMask":
 					ColourMap_Sampler_tex = mat.node_tree.nodes['ColourMap_Sampler']
@@ -2525,34 +2525,34 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 					uv_map_node1 = mat.node_tree.nodes.new(type='ShaderNodeUVMap')
 					uv_map_node2 = mat.node_tree.nodes.new(type='ShaderNodeUVMap')
 					mapping_node1 = mat.node_tree.nodes.new(type='ShaderNodeMapping')
-					separete_rgb_node1 = mat.node_tree.nodes.new(type='ShaderNodeSeparateRGB')
+					separate_rgb_node1 = mat.node_tree.nodes.new(type='ShaderNodeSeparateRGB')
 
 					mix_rgb_node1.blend_type = "OVERLAY"
 					mix_rgb_node2.blend_type = "OVERLAY"
 					uv_map_node1.uv_map = "UVMap"
 					uv_map_node2.uv_map = "UV3Map"
-					mix_rgb_node2.inputs[2].default_value = OverlayB_Diffuse
+					mix_rgb_node2.inputs['Color2'].default_value = OverlayB_Diffuse
 
 					mapping_node1.inputs[3].default_value[0] = DetailMapUvScale[0]*10.0
 					mapping_node1.inputs[3].default_value[1] = DetailMapUvScale[1]*100.0
 
-					mat.node_tree.links.new(uv_map_node1.outputs[0], mapping_node1.inputs[0])
-					mat.node_tree.links.new(mapping_node1.outputs[0], DetailMap_Diffuse_Sampler_tex.inputs[0])
+					mat.node_tree.links.new(uv_map_node1.outputs['UV'], mapping_node1.inputs[0])
+					mat.node_tree.links.new(mapping_node1.outputs['Vector'], DetailMap_Diffuse_Sampler_tex.inputs['Vector'])
 
-					mat.node_tree.links.new(OverlayA_Sampler_tex.outputs[0], mix_rgb_node1.inputs[0])
-					mat.node_tree.links.new(DetailMap_Diffuse_Sampler_tex.outputs[0], mix_rgb_node1.inputs[1])
-					mat.node_tree.links.new(ColourMap_Sampler_tex.outputs[0], mix_rgb_node1.inputs[2])
+					mat.node_tree.links.new(OverlayA_Sampler_tex.outputs['Color'], mix_rgb_node1.inputs['Fac'])
+					mat.node_tree.links.new(DetailMap_Diffuse_Sampler_tex.outputs['Color'], mix_rgb_node1.inputs['Color1'])
+					mat.node_tree.links.new(ColourMap_Sampler_tex.outputs['Color'], mix_rgb_node1.inputs['Color2'])
 
-					mat.node_tree.links.new(OverlayB_Sampler_tex.outputs[0], mix_rgb_node2.inputs[0])
-					mat.node_tree.links.new(mix_rgb_node1.outputs[0], mix_rgb_node2.inputs[1])
-					mat.node_tree.links.new(mix_rgb_node2.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[0])
+					mat.node_tree.links.new(OverlayB_Sampler_tex.outputs['Color'], mix_rgb_node2.inputs['Fac'])
+					mat.node_tree.links.new(mix_rgb_node1.outputs['Color'], mix_rgb_node2.inputs['Color1'])
+					mat.node_tree.links.new(mix_rgb_node2.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Base Color'])
 
-					mat.node_tree.links.new(uv_map_node2.outputs[0], EdgeAlphaPlusAoMap_Sampler_tex.inputs[0])
-					mat.node_tree.links.new(EdgeAlphaPlusAoMap_Sampler_tex.outputs[0], separete_rgb_node1.inputs[0])
-					mat.node_tree.links.new(separete_rgb_node1.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[21])
+					mat.node_tree.links.new(uv_map_node2.outputs['UV'], EdgeAlphaPlusAoMap_Sampler_tex.inputs['Vector'])
+					mat.node_tree.links.new(EdgeAlphaPlusAoMap_Sampler_tex.outputs['Color'], separate_rgb_node1.inputs['Image'])
+					mat.node_tree.links.new(separate_rgb_node1.outputs['R'], mat.node_tree.nodes[mMaterialId].inputs['Alpha'])
 
-					mat.node_tree.nodes[mMaterialId].inputs[6].default_value = 0.2
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 1.0
+					mat.node_tree.nodes[mMaterialId].inputs['Metallic'].default_value = 0.2
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 1.0
 
 					#Normal
 					mix_rgb_node3 = mat.node_tree.nodes.new(type='ShaderNodeMixRGB')
@@ -2561,24 +2561,24 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 					normal_map_node2 = mat.node_tree.nodes.new(type='ShaderNodeNormalMap')
 					normal_map_node1.uv_map = "UVMap"
 					normal_map_node2.uv_map = "UVMap"
-					normal_map_node1.inputs[0].default_value = 0.48
-					normal_map_node2.inputs[0].default_value = 0.4
+					normal_map_node1.inputs['Strength'].default_value = 0.48
+					normal_map_node2.inputs['Strength'].default_value = 0.4
 
 					CrackMap_UScale_VScale_UOffset_VOffset = parameters_Data[parameters_Names.index("CrackMap_UScale_VScale_UOffset_VOffset")]
 
 					mapping_node2.inputs[3].default_value[0] = CrackMap_UScale_VScale_UOffset_VOffset[0]*1.0
 					mapping_node2.inputs[3].default_value[1] = CrackMap_UScale_VScale_UOffset_VOffset[1]*1.0
 
-					mat.node_tree.links.new(uv_map_node1.outputs[0], mapping_node2.inputs[0])
-					mat.node_tree.links.new(mapping_node1.outputs[0], DetailMap_Normal_Sampler_tex.inputs[0])
-					mat.node_tree.links.new(mapping_node2.outputs[0], Crack_Normal_Sampler_tex.inputs[0])
+					mat.node_tree.links.new(uv_map_node1.outputs['UV'], mapping_node2.inputs[0])
+					mat.node_tree.links.new(mapping_node1.outputs['Vector'], DetailMap_Normal_Sampler_tex.inputs['Vector'])
+					mat.node_tree.links.new(mapping_node2.outputs['Vector'], Crack_Normal_Sampler_tex.inputs['Vector'])
 
-					mat.node_tree.links.new(Crack_Normal_Sampler_tex.outputs[0], normal_map_node1.inputs[1])
-					mat.node_tree.links.new(DetailMap_Normal_Sampler_tex.outputs[0], normal_map_node2.inputs[1])
+					mat.node_tree.links.new(Crack_Normal_Sampler_tex.outputs['Color'], normal_map_node1.inputs['Color'])
+					mat.node_tree.links.new(DetailMap_Normal_Sampler_tex.outputs['Color'], normal_map_node2.inputs['Color'])
 
-					mat.node_tree.links.new(normal_map_node1.outputs[0], mix_rgb_node3.inputs[1])
-					mat.node_tree.links.new(normal_map_node2.outputs[0], mix_rgb_node3.inputs[2])
-					mat.node_tree.links.new(mix_rgb_node3.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[22])
+					mat.node_tree.links.new(normal_map_node1.outputs['Normal'], mix_rgb_node3.inputs['Color1'])
+					mat.node_tree.links.new(normal_map_node2.outputs['Normal'], mix_rgb_node3.inputs['Color2'])
+					mat.node_tree.links.new(mix_rgb_node3.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Normal'])
 
 					mat.blend_method = 'BLEND'
 					mat.shadow_method = 'HASHED'
@@ -2594,7 +2594,7 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 					uv_map_node1 = mat.node_tree.nodes.new(type='ShaderNodeUVMap')
 					uv_map_node2 = mat.node_tree.nodes.new(type='ShaderNodeUVMap')
 					mapping_node = mat.node_tree.nodes.new(type='ShaderNodeMapping')
-					separete_rgb_node1 = mat.node_tree.nodes.new(type='ShaderNodeSeparateRGB')
+					separate_rgb_node1 = mat.node_tree.nodes.new(type='ShaderNodeSeparateRGB')
 
 					uv_map_node1.uv_map = "UVMap"
 					uv_map_node2.uv_map = "UV3Map"
@@ -2604,18 +2604,18 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 					mapping_node.inputs[3].default_value[0] = DetailMapUvScale[0]*10.0
 					mapping_node.inputs[3].default_value[1] = DetailMapUvScale[1]*10.0
 
-					mat.node_tree.links.new(uv_map_node1.outputs[0], mapping_node.inputs[0])
-					mat.node_tree.links.new(mapping_node.outputs[0], DetailMap_Diffuse_Sampler_tex.inputs[0])
-					mat.node_tree.links.new(ColourMap_Sampler_tex.outputs[0], mix_rgb_node1.inputs[1])
-					mat.node_tree.links.new(DetailMap_Diffuse_Sampler_tex.outputs[0], mix_rgb_node1.inputs[2])
+					mat.node_tree.links.new(uv_map_node1.outputs['UV'], mapping_node.inputs[0])
+					mat.node_tree.links.new(mapping_node.outputs['Vector'], DetailMap_Diffuse_Sampler_tex.inputs['Vector'])
+					mat.node_tree.links.new(ColourMap_Sampler_tex.outputs['Color'], mix_rgb_node1.inputs['Color1'])
+					mat.node_tree.links.new(DetailMap_Diffuse_Sampler_tex.outputs['Color'], mix_rgb_node1.inputs['Color2'])
 
-					mat.node_tree.links.new(uv_map_node2.outputs[0], EdgeAlphaPlusAoMap_Sampler_tex.inputs[0])
-					mat.node_tree.links.new(EdgeAlphaPlusAoMap_Sampler_tex.outputs[0], separete_rgb_node1.inputs[0])
-					mat.node_tree.links.new(separete_rgb_node1.outputs[1], mat.node_tree.nodes[mMaterialId].inputs[21])
+					mat.node_tree.links.new(uv_map_node2.outputs['UV'], EdgeAlphaPlusAoMap_Sampler_tex.inputs['Vector'])
+					mat.node_tree.links.new(EdgeAlphaPlusAoMap_Sampler_tex.outputs['Color'], separate_rgb_node1.inputs['Image'])
+					mat.node_tree.links.new(separate_rgb_node1.outputs['G'], mat.node_tree.nodes[mMaterialId].inputs['Alpha'])
 
-					mat.node_tree.links.new(mix_rgb_node1.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[0])
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 0.5
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 0.5
+					mat.node_tree.links.new(mix_rgb_node1.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Base Color'])
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 0.5
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 0.5
 
 					mat.blend_method = 'BLEND'
 					mat.shadow_method = 'HASHED'
@@ -2626,13 +2626,13 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 					normal_map_node1.uv_map = "UVMap"
 					normal_map_node2.uv_map = "UVMap"
 
-					mat.node_tree.links.new(mapping_node.outputs[0], DetailMap_Normal_Sampler_tex.inputs[0])
-					mat.node_tree.links.new(Crack_Normal_Sampler_tex.outputs[0], normal_map_node1.inputs[1])
-					mat.node_tree.links.new(DetailMap_Normal_Sampler_tex.outputs[0], normal_map_node2.inputs[1])
+					mat.node_tree.links.new(mapping_node.outputs['Vector'], DetailMap_Normal_Sampler_tex.inputs['Vector'])
+					mat.node_tree.links.new(Crack_Normal_Sampler_tex.outputs['Color'], normal_map_node1.inputs['Color'])
+					mat.node_tree.links.new(DetailMap_Normal_Sampler_tex.outputs['Color'], normal_map_node2.inputs['Color'])
 
-					mat.node_tree.links.new(normal_map_node1.outputs[0], mix_rgb_node3.inputs[1])
-					mat.node_tree.links.new(normal_map_node2.outputs[0], mix_rgb_node3.inputs[2])
-					mat.node_tree.links.new(mix_rgb_node3.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[22])
+					mat.node_tree.links.new(normal_map_node1.outputs['Normal'], mix_rgb_node3.inputs['Color1'])
+					mat.node_tree.links.new(normal_map_node2.outputs['Normal'], mix_rgb_node3.inputs['Color2'])
+					mat.node_tree.links.new(mix_rgb_node3.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Normal'])
 
 				elif shader_type == "DriveableSurface_AlphaMask_CarPark":
 					ColourMap_Sampler_tex = mat.node_tree.nodes['ColourMap_Sampler']
@@ -2656,37 +2656,37 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 					uv_map_node2 = mat.node_tree.nodes.new(type='ShaderNodeUVMap')
 					uv_map_node3 = mat.node_tree.nodes.new(type='ShaderNodeUVMap')
 					mapping_node1 = mat.node_tree.nodes.new(type='ShaderNodeMapping')
-					separete_rgb_node1 = mat.node_tree.nodes.new(type='ShaderNodeSeparateRGB')
+					separate_rgb_node1 = mat.node_tree.nodes.new(type='ShaderNodeSeparateRGB')
 
 					mix_rgb_node1.blend_type = "OVERLAY"
 					mix_rgb_node2.blend_type = "OVERLAY"
 					uv_map_node1.uv_map = "UVMap"
 					uv_map_node2.uv_map = "UV4Map"
 					uv_map_node3.uv_map = "UV3Map"
-					mix_rgb_node2.inputs[2].default_value = OverlayB_Diffuse
+					mix_rgb_node2.inputs['Color2'].default_value = OverlayB_Diffuse
 
 					mapping_node1.inputs[3].default_value[0] = DetailMapUvScale[0]*1.0
 					mapping_node1.inputs[3].default_value[1] = DetailMapUvScale[1]*1.0
 
-					mat.node_tree.links.new(uv_map_node1.outputs[0], mapping_node1.inputs[0])
-					mat.node_tree.links.new(mapping_node1.outputs[0], DetailMap_Diffuse_Sampler_tex.inputs[0])
+					mat.node_tree.links.new(uv_map_node1.outputs['UV'], mapping_node1.inputs[0])
+					mat.node_tree.links.new(mapping_node1.outputs['Vector'], DetailMap_Diffuse_Sampler_tex.inputs['Vector'])
 
-					mat.node_tree.links.new(uv_map_node2.outputs[0], OverlayA_Sampler_tex.inputs[0])
+					mat.node_tree.links.new(uv_map_node2.outputs['UV'], OverlayA_Sampler_tex.inputs['Vector'])
 
-					mat.node_tree.links.new(OverlayA_Sampler_tex.outputs[0], mix_rgb_node1.inputs[0])
-					mat.node_tree.links.new(DetailMap_Diffuse_Sampler_tex.outputs[0], mix_rgb_node1.inputs[1])
-					mat.node_tree.links.new(ColourMap_Sampler_tex.outputs[0], mix_rgb_node1.inputs[2])
+					mat.node_tree.links.new(OverlayA_Sampler_tex.outputs['Color'], mix_rgb_node1.inputs['Fac'])
+					mat.node_tree.links.new(DetailMap_Diffuse_Sampler_tex.outputs['Color'], mix_rgb_node1.inputs['Color1'])
+					mat.node_tree.links.new(ColourMap_Sampler_tex.outputs['Color'], mix_rgb_node1.inputs['Color2'])
 
-					mat.node_tree.links.new(OverlayB_Sampler_tex.outputs[0], mix_rgb_node2.inputs[0])
-					mat.node_tree.links.new(mix_rgb_node1.outputs[0], mix_rgb_node2.inputs[1])
-					mat.node_tree.links.new(mix_rgb_node2.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[0])
+					mat.node_tree.links.new(OverlayB_Sampler_tex.outputs['Color'], mix_rgb_node2.inputs['Fac'])
+					mat.node_tree.links.new(mix_rgb_node1.outputs['Color'], mix_rgb_node2.inputs['Color1'])
+					mat.node_tree.links.new(mix_rgb_node2.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Base Color'])
 
-					mat.node_tree.links.new(uv_map_node3.outputs[0], EdgeAlphaPlusAoMap_Sampler_tex.inputs[0])
-					mat.node_tree.links.new(EdgeAlphaPlusAoMap_Sampler_tex.outputs[0], separete_rgb_node1.inputs[0])
-					mat.node_tree.links.new(separete_rgb_node1.outputs[1], mat.node_tree.nodes[mMaterialId].inputs[21])
+					mat.node_tree.links.new(uv_map_node3.outputs['UV'], EdgeAlphaPlusAoMap_Sampler_tex.inputs['Vector'])
+					mat.node_tree.links.new(EdgeAlphaPlusAoMap_Sampler_tex.outputs['Color'], separate_rgb_node1.inputs['Image'])
+					mat.node_tree.links.new(separate_rgb_node1.outputs['G'], mat.node_tree.nodes[mMaterialId].inputs['Alpha'])
 
-					mat.node_tree.nodes[mMaterialId].inputs[6].default_value = 0.2
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 1.0
+					mat.node_tree.nodes[mMaterialId].inputs['Metallic'].default_value = 0.2
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 1.0
 
 					#Normal
 					mix_rgb_node3 = mat.node_tree.nodes.new(type='ShaderNodeMixRGB')
@@ -2695,24 +2695,24 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 					normal_map_node2 = mat.node_tree.nodes.new(type='ShaderNodeNormalMap')
 					normal_map_node1.uv_map = "UVMap"
 					normal_map_node2.uv_map = "UVMap"
-					normal_map_node1.inputs[0].default_value = 0.48
-					normal_map_node2.inputs[0].default_value = 0.4
+					normal_map_node1.inputs['Strength'].default_value = 0.48
+					normal_map_node2.inputs['Strength'].default_value = 0.4
 
 					CrackMap_UScale_VScale_UOffset_VOffset = parameters_Data[parameters_Names.index("CrackMap_UScale_VScale_UOffset_VOffset")]
 
 					mapping_node2.inputs[3].default_value[0] = CrackMap_UScale_VScale_UOffset_VOffset[0]*1.0
 					mapping_node2.inputs[3].default_value[1] = CrackMap_UScale_VScale_UOffset_VOffset[1]*1.0
 
-					mat.node_tree.links.new(uv_map_node1.outputs[0], mapping_node2.inputs[0])
-					mat.node_tree.links.new(mapping_node1.outputs[0], DetailMap_Normal_Sampler_tex.inputs[0])
-					mat.node_tree.links.new(mapping_node2.outputs[0], Crack_Normal_Sampler_tex.inputs[0])
+					mat.node_tree.links.new(uv_map_node1.outputs['UV'], mapping_node2.inputs[0])
+					mat.node_tree.links.new(mapping_node1.outputs['Vector'], DetailMap_Normal_Sampler_tex.inputs['Vector'])
+					mat.node_tree.links.new(mapping_node2.outputs['Vector'], Crack_Normal_Sampler_tex.inputs['Vector'])
 
-					mat.node_tree.links.new(Crack_Normal_Sampler_tex.outputs[0], normal_map_node1.inputs[1])
-					mat.node_tree.links.new(DetailMap_Normal_Sampler_tex.outputs[0], normal_map_node2.inputs[1])
+					mat.node_tree.links.new(Crack_Normal_Sampler_tex.outputs['Color'], normal_map_node1.inputs['Color'])
+					mat.node_tree.links.new(DetailMap_Normal_Sampler_tex.outputs['Color'], normal_map_node2.inputs['Color'])
 
-					mat.node_tree.links.new(normal_map_node1.outputs[0], mix_rgb_node3.inputs[1])
-					mat.node_tree.links.new(normal_map_node2.outputs[0], mix_rgb_node3.inputs[2])
-					mat.node_tree.links.new(mix_rgb_node3.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[22])
+					mat.node_tree.links.new(normal_map_node1.outputs['Normal'], mix_rgb_node3.inputs['Color1'])
+					mat.node_tree.links.new(normal_map_node2.outputs['Normal'], mix_rgb_node3.inputs['Color2'])
+					mat.node_tree.links.new(mix_rgb_node3.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Normal'])
 
 					mat.blend_method = 'BLEND'
 					mat.shadow_method = 'HASHED'
@@ -2747,34 +2747,34 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 					mix_rgb_node4.blend_type = "MIX"
 					uv_map_node1.uv_map = "UVMap"
 					uv_map_node2.uv_map = "UV3Map"
-					mix_rgb_node2.inputs[2].default_value = OverlayB_Diffuse
+					mix_rgb_node2.inputs['Color2'].default_value = OverlayB_Diffuse
 
 					mapping_node1.inputs[3].default_value[0] = DetailMapUvScale[0]*10.0
 					mapping_node1.inputs[3].default_value[1] = DetailMapUvScale[1]*100.0
 
-					mat.node_tree.links.new(uv_map_node1.outputs[0], mapping_node1.inputs[0])
-					mat.node_tree.links.new(mapping_node1.outputs[0], DetailMap_Diffuse_Sampler_tex.inputs[0])
+					mat.node_tree.links.new(uv_map_node1.outputs['UV'], mapping_node1.inputs[0])
+					mat.node_tree.links.new(mapping_node1.outputs['Vector'], DetailMap_Diffuse_Sampler_tex.inputs['Vector'])
 
-					mat.node_tree.links.new(OverlayA_Sampler_tex.outputs[0], mix_rgb_node1.inputs[0])
-					mat.node_tree.links.new(DetailMap_Diffuse_Sampler_tex.outputs[0], mix_rgb_node1.inputs[1])
-					mat.node_tree.links.new(ColourMap_Sampler_tex.outputs[0], mix_rgb_node1.inputs[2])
+					mat.node_tree.links.new(OverlayA_Sampler_tex.outputs['Color'], mix_rgb_node1.inputs['Fac'])
+					mat.node_tree.links.new(DetailMap_Diffuse_Sampler_tex.outputs['Color'], mix_rgb_node1.inputs['Color1'])
+					mat.node_tree.links.new(ColourMap_Sampler_tex.outputs['Color'], mix_rgb_node1.inputs['Color2'])
 
-					mat.node_tree.links.new(OverlayB_Sampler_tex.outputs[0], mix_rgb_node2.inputs[0])
-					mat.node_tree.links.new(mix_rgb_node1.outputs[0], mix_rgb_node2.inputs[1])
+					mat.node_tree.links.new(OverlayB_Sampler_tex.outputs['Color'], mix_rgb_node2.inputs['Fac'])
+					mat.node_tree.links.new(mix_rgb_node1.outputs['Color'], mix_rgb_node2.inputs['Color1'])
 
 
-					mat.node_tree.links.new(uv_map_node2.outputs[0], Decal_Diffuse_Sampler_tex.inputs[0])
-					mat.node_tree.links.new(Decal_Diffuse_Sampler_tex.outputs[0], mix_rgb_node3.inputs[1])
-					mat.node_tree.links.new(Decal_Diffuse_Sampler_tex.outputs[1], mix_rgb_node3.inputs[0])
+					mat.node_tree.links.new(uv_map_node2.outputs['UV'], Decal_Diffuse_Sampler_tex.inputs['Vector'])
+					mat.node_tree.links.new(Decal_Diffuse_Sampler_tex.outputs['Color'], mix_rgb_node3.inputs['Color1'])
+					mat.node_tree.links.new(Decal_Diffuse_Sampler_tex.outputs['Alpha'], mix_rgb_node3.inputs['Fac'])
 
-					mat.node_tree.links.new(Decal_Diffuse_Sampler_tex.outputs[1], mix_rgb_node4.inputs[0])
-					mat.node_tree.links.new(mix_rgb_node2.outputs[0], mix_rgb_node4.inputs[1])
-					mat.node_tree.links.new(mix_rgb_node3.outputs[0], mix_rgb_node4.inputs[2])
+					mat.node_tree.links.new(Decal_Diffuse_Sampler_tex.outputs['Alpha'], mix_rgb_node4.inputs['Fac'])
+					mat.node_tree.links.new(mix_rgb_node2.outputs['Color'], mix_rgb_node4.inputs['Color1'])
+					mat.node_tree.links.new(mix_rgb_node3.outputs['Color'], mix_rgb_node4.inputs['Color2'])
 
-					mat.node_tree.links.new(mix_rgb_node4.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[0])
+					mat.node_tree.links.new(mix_rgb_node4.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Base Color'])
 
-					mat.node_tree.nodes[mMaterialId].inputs[6].default_value = 0.2
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 1.0
+					mat.node_tree.nodes[mMaterialId].inputs['Metallic'].default_value = 0.2
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 1.0
 
 					#Normal
 					mix_rgb_node3 = mat.node_tree.nodes.new(type='ShaderNodeMixRGB')
@@ -2783,24 +2783,24 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 					normal_map_node2 = mat.node_tree.nodes.new(type='ShaderNodeNormalMap')
 					normal_map_node1.uv_map = "UVMap"
 					normal_map_node2.uv_map = "UVMap"
-					normal_map_node1.inputs[0].default_value = 0.48
-					normal_map_node2.inputs[0].default_value = 0.4
+					normal_map_node1.inputs['Strength'].default_value = 0.48
+					normal_map_node2.inputs['Strength'].default_value = 0.4
 
 					CrackMap_UScale_VScale_UOffset_VOffset = parameters_Data[parameters_Names.index("CrackMap_UScale_VScale_UOffset_VOffset")]
 
 					mapping_node2.inputs[3].default_value[0] = CrackMap_UScale_VScale_UOffset_VOffset[0]*1.0
 					mapping_node2.inputs[3].default_value[1] = CrackMap_UScale_VScale_UOffset_VOffset[1]*1.0
 
-					mat.node_tree.links.new(uv_map_node1.outputs[0], mapping_node2.inputs[0])
-					mat.node_tree.links.new(mapping_node1.outputs[0], DetailMap_Normal_Sampler_tex.inputs[0])
-					mat.node_tree.links.new(mapping_node2.outputs[0], Crack_Normal_Sampler_tex.inputs[0])
+					mat.node_tree.links.new(uv_map_node1.outputs['UV'], mapping_node2.inputs[0])
+					mat.node_tree.links.new(mapping_node1.outputs['Vector'], DetailMap_Normal_Sampler_tex.inputs['Vector'])
+					mat.node_tree.links.new(mapping_node2.outputs['Vector'], Crack_Normal_Sampler_tex.inputs['Vector'])
 
-					mat.node_tree.links.new(Crack_Normal_Sampler_tex.outputs[0], normal_map_node1.inputs[1])
-					mat.node_tree.links.new(DetailMap_Normal_Sampler_tex.outputs[0], normal_map_node2.inputs[1])
+					mat.node_tree.links.new(Crack_Normal_Sampler_tex.outputs['Color'], normal_map_node1.inputs['Color'])
+					mat.node_tree.links.new(DetailMap_Normal_Sampler_tex.outputs['Color'], normal_map_node2.inputs['Color'])
 
-					mat.node_tree.links.new(normal_map_node1.outputs[0], mix_rgb_node3.inputs[1])
-					mat.node_tree.links.new(normal_map_node2.outputs[0], mix_rgb_node3.inputs[2])
-					mat.node_tree.links.new(mix_rgb_node3.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[22])
+					mat.node_tree.links.new(normal_map_node1.outputs['Normal'], mix_rgb_node3.inputs['Color1'])
+					mat.node_tree.links.new(normal_map_node2.outputs['Normal'], mix_rgb_node3.inputs['Color2'])
+					mat.node_tree.links.new(mix_rgb_node3.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Normal'])
 
 				elif shader_type == "DriveableSurface_Lightmap":
 					ColourMap_Sampler_tex = mat.node_tree.nodes['ColourMap_Sampler']
@@ -2823,17 +2823,17 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 					mapping_node1.inputs[3].default_value[0] = DetailMapUvScale[0]*10.0
 					mapping_node1.inputs[3].default_value[1] = DetailMapUvScale[1]*100.0
 
-					mat.node_tree.links.new(uv_map_node1.outputs[0], mapping_node1.inputs[0])
-					mat.node_tree.links.new(mapping_node1.outputs[0], DetailMap_Diffuse_Sampler_tex.inputs[0])
+					mat.node_tree.links.new(uv_map_node1.outputs['UV'], mapping_node1.inputs[0])
+					mat.node_tree.links.new(mapping_node1.outputs['Vector'], DetailMap_Diffuse_Sampler_tex.inputs['Vector'])
 
-					mat.node_tree.links.new(ColourMap_Sampler_tex.outputs[1], mix_rgb_node1.inputs[0])
-					mat.node_tree.links.new(DetailMap_Diffuse_Sampler_tex.outputs[0], mix_rgb_node1.inputs[1])
-					mat.node_tree.links.new(ColourMap_Sampler_tex.outputs[0], mix_rgb_node1.inputs[2])
+					mat.node_tree.links.new(ColourMap_Sampler_tex.outputs['Alpha'], mix_rgb_node1.inputs['Fac'])
+					mat.node_tree.links.new(DetailMap_Diffuse_Sampler_tex.outputs['Color'], mix_rgb_node1.inputs['Color1'])
+					mat.node_tree.links.new(ColourMap_Sampler_tex.outputs['Color'], mix_rgb_node1.inputs['Color2'])
 
-					mat.node_tree.links.new(mix_rgb_node1.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[0])
+					mat.node_tree.links.new(mix_rgb_node1.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Base Color'])
 
-					mat.node_tree.nodes[mMaterialId].inputs[6].default_value = 0.2
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 1.0
+					mat.node_tree.nodes[mMaterialId].inputs['Metallic'].default_value = 0.2
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 1.0
 
 					#Normal
 					mix_rgb_node3 = mat.node_tree.nodes.new(type='ShaderNodeMixRGB')
@@ -2847,14 +2847,14 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 					mapping_node2.inputs[3].default_value[0] = CrackMap_UScale_VScale_UOffset_VOffset[0]*1.0
 					mapping_node2.inputs[3].default_value[1] = CrackMap_UScale_VScale_UOffset_VOffset[1]*1.0
 
-					mat.node_tree.links.new(uv_map_node2.outputs[0], mapping_node2.inputs[0])
-					mat.node_tree.links.new(mapping_node2.outputs[0], Crack_Normal_Sampler_tex.inputs[0])
+					mat.node_tree.links.new(uv_map_node2.outputs['UV'], mapping_node2.inputs[0])
+					mat.node_tree.links.new(mapping_node2.outputs['Vector'], Crack_Normal_Sampler_tex.inputs['Vector'])
 
-					mat.node_tree.links.new(mapping_node1.outputs[0], DetailMap_Normal_Sampler_tex.inputs[0])
+					mat.node_tree.links.new(mapping_node1.outputs['Vector'], DetailMap_Normal_Sampler_tex.inputs['Vector'])
 
-					mat.node_tree.links.new(Crack_Normal_Sampler_tex.outputs[0], mix_rgb_node3.inputs[1])
-					mat.node_tree.links.new(DetailMap_Normal_Sampler_tex.outputs[0], mix_rgb_node3.inputs[2])
-					mat.node_tree.links.new(mix_rgb_node3.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[22])
+					mat.node_tree.links.new(Crack_Normal_Sampler_tex.outputs['Color'], mix_rgb_node3.inputs['Color1'])
+					mat.node_tree.links.new(DetailMap_Normal_Sampler_tex.outputs['Color'], mix_rgb_node3.inputs['Color2'])
+					mat.node_tree.links.new(mix_rgb_node3.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Normal'])
 
 				elif shader_type == "DriveableSurface_RetroreflectivePaint_CarPark":
 					ColourMap_Sampler_tex = mat.node_tree.nodes['ColourMap_Sampler']
@@ -2887,34 +2887,34 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 					mix_rgb_node4.blend_type = "MIX"
 					uv_map_node1.uv_map = "UVMap"
 					uv_map_node2.uv_map = "UV3Map"
-					mix_rgb_node2.inputs[2].default_value = OverlayB_Diffuse
-					mix_rgb_node3.inputs[2].default_value = Line_Diffuse
+					mix_rgb_node2.inputs['Color2'].default_value = OverlayB_Diffuse
+					mix_rgb_node3.inputs['Color2'].default_value = Line_Diffuse
 
 					mapping_node1.inputs[3].default_value[0] = DetailMapUvScale[0]*1.0
 					mapping_node1.inputs[3].default_value[1] = DetailMapUvScale[1]*1.0
 
-					mat.node_tree.links.new(uv_map_node1.outputs[0], mapping_node1.inputs[0])
-					mat.node_tree.links.new(mapping_node1.outputs[0], DetailMap_Diffuse_Sampler_tex.inputs[0])
+					mat.node_tree.links.new(uv_map_node1.outputs['UV'], mapping_node1.inputs[0])
+					mat.node_tree.links.new(mapping_node1.outputs['Vector'], DetailMap_Diffuse_Sampler_tex.inputs['Vector'])
 
-					mat.node_tree.links.new(OverlayA_Sampler_tex.outputs[0], mix_rgb_node1.inputs[0])
-					mat.node_tree.links.new(DetailMap_Diffuse_Sampler_tex.outputs[0], mix_rgb_node1.inputs[1])
-					mat.node_tree.links.new(ColourMap_Sampler_tex.outputs[0], mix_rgb_node1.inputs[2])
+					mat.node_tree.links.new(OverlayA_Sampler_tex.outputs['Color'], mix_rgb_node1.inputs['Fac'])
+					mat.node_tree.links.new(DetailMap_Diffuse_Sampler_tex.outputs['Color'], mix_rgb_node1.inputs['Color1'])
+					mat.node_tree.links.new(ColourMap_Sampler_tex.outputs['Color'], mix_rgb_node1.inputs['Color2'])
 
-					mat.node_tree.links.new(OverlayB_Sampler_tex.outputs[0], mix_rgb_node2.inputs[0])
-					mat.node_tree.links.new(mix_rgb_node1.outputs[0], mix_rgb_node2.inputs[1])
+					mat.node_tree.links.new(OverlayB_Sampler_tex.outputs['Color'], mix_rgb_node2.inputs['Fac'])
+					mat.node_tree.links.new(mix_rgb_node1.outputs['Color'], mix_rgb_node2.inputs['Color1'])
 
-					mat.node_tree.links.new(uv_map_node2.outputs[0], Line_Diffuse_Sampler_tex.inputs[0])
-					mat.node_tree.links.new(Line_Diffuse_Sampler_tex.outputs[0], mix_rgb_node3.inputs[1])
-					mat.node_tree.links.new(Line_Diffuse_Sampler_tex.outputs[1], mix_rgb_node3.inputs[0])
+					mat.node_tree.links.new(uv_map_node2.outputs['UV'], Line_Diffuse_Sampler_tex.inputs['Vector'])
+					mat.node_tree.links.new(Line_Diffuse_Sampler_tex.outputs['Color'], mix_rgb_node3.inputs['Color1'])
+					mat.node_tree.links.new(Line_Diffuse_Sampler_tex.outputs['Alpha'], mix_rgb_node3.inputs['Fac'])
 
-					mat.node_tree.links.new(Line_Diffuse_Sampler_tex.outputs[1], mix_rgb_node4.inputs[0])
-					mat.node_tree.links.new(mix_rgb_node2.outputs[0], mix_rgb_node4.inputs[1])
-					mat.node_tree.links.new(mix_rgb_node3.outputs[0], mix_rgb_node4.inputs[2])
+					mat.node_tree.links.new(Line_Diffuse_Sampler_tex.outputs['Alpha'], mix_rgb_node4.inputs['Fac'])
+					mat.node_tree.links.new(mix_rgb_node2.outputs['Color'], mix_rgb_node4.inputs['Color1'])
+					mat.node_tree.links.new(mix_rgb_node3.outputs['Color'], mix_rgb_node4.inputs['Color2'])
 
-					mat.node_tree.links.new(mix_rgb_node4.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[0])
+					mat.node_tree.links.new(mix_rgb_node4.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Base Color'])
 
-					mat.node_tree.nodes[mMaterialId].inputs[6].default_value = 0.2
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 1.0
+					mat.node_tree.nodes[mMaterialId].inputs['Metallic'].default_value = 0.2
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 1.0
 
 					#Normal
 					mix_rgb_node3 = mat.node_tree.nodes.new(type='ShaderNodeMixRGB')
@@ -2923,24 +2923,24 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 					normal_map_node2 = mat.node_tree.nodes.new(type='ShaderNodeNormalMap')
 					normal_map_node1.uv_map = "UVMap"
 					normal_map_node2.uv_map = "UVMap"
-					normal_map_node1.inputs[0].default_value = 0.48
-					normal_map_node2.inputs[0].default_value = 0.4
+					normal_map_node1.inputs['Strength'].default_value = 0.48
+					normal_map_node2.inputs['Strength'].default_value = 0.4
 
 					CrackMap_UScale_VScale_UOffset_VOffset = parameters_Data[parameters_Names.index("CrackMap_UScale_VScale_UOffset_VOffset")]
 
 					mapping_node2.inputs[3].default_value[0] = CrackMap_UScale_VScale_UOffset_VOffset[0]*1.0
 					mapping_node2.inputs[3].default_value[1] = CrackMap_UScale_VScale_UOffset_VOffset[1]*1.0
 
-					mat.node_tree.links.new(uv_map_node1.outputs[0], mapping_node2.inputs[0])
-					mat.node_tree.links.new(mapping_node1.outputs[0], DetailMap_Normal_Sampler_tex.inputs[0])
-					mat.node_tree.links.new(mapping_node2.outputs[0], Crack_Normal_Sampler_tex.inputs[0])
+					mat.node_tree.links.new(uv_map_node1.outputs['UV'], mapping_node2.inputs[0])
+					mat.node_tree.links.new(mapping_node1.outputs['Vector'], DetailMap_Normal_Sampler_tex.inputs['Vector'])
+					mat.node_tree.links.new(mapping_node2.outputs['Vector'], Crack_Normal_Sampler_tex.inputs['Vector'])
 
-					mat.node_tree.links.new(Crack_Normal_Sampler_tex.outputs[0], normal_map_node1.inputs[1])
-					mat.node_tree.links.new(DetailMap_Normal_Sampler_tex.outputs[0], normal_map_node2.inputs[1])
+					mat.node_tree.links.new(Crack_Normal_Sampler_tex.outputs['Color'], normal_map_node1.inputs['Color'])
+					mat.node_tree.links.new(DetailMap_Normal_Sampler_tex.outputs['Color'], normal_map_node2.inputs['Color'])
 
-					mat.node_tree.links.new(normal_map_node1.outputs[0], mix_rgb_node3.inputs[1])
-					mat.node_tree.links.new(normal_map_node2.outputs[0], mix_rgb_node3.inputs[2])
-					mat.node_tree.links.new(mix_rgb_node3.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[22])
+					mat.node_tree.links.new(normal_map_node1.outputs['Normal'], mix_rgb_node3.inputs['Color1'])
+					mat.node_tree.links.new(normal_map_node2.outputs['Normal'], mix_rgb_node3.inputs['Color2'])
+					mat.node_tree.links.new(mix_rgb_node3.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Normal'])
 
 				elif shader_type == "DriveableSurface_RetroreflectivePaint_LineFade":
 					ColourMap_Sampler_tex = mat.node_tree.nodes['ColourMap_Sampler']
@@ -2973,34 +2973,34 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 					mix_rgb_node4.blend_type = "MIX"
 					uv_map_node1.uv_map = "UVMap"
 					uv_map_node2.uv_map = "UV3Map"
-					mix_rgb_node2.inputs[2].default_value = OverlayB_Diffuse
-					mix_rgb_node3.inputs[2].default_value = Line_Diffuse
+					mix_rgb_node2.inputs['Color2'].default_value = OverlayB_Diffuse
+					mix_rgb_node3.inputs['Color2'].default_value = Line_Diffuse
 
 					mapping_node1.inputs[3].default_value[0] = DetailMapUvScale[0]*10.0
 					mapping_node1.inputs[3].default_value[1] = DetailMapUvScale[1]*100.0
 
-					mat.node_tree.links.new(uv_map_node1.outputs[0], mapping_node1.inputs[0])
-					mat.node_tree.links.new(mapping_node1.outputs[0], DetailMap_Diffuse_Sampler_tex.inputs[0])
+					mat.node_tree.links.new(uv_map_node1.outputs['UV'], mapping_node1.inputs[0])
+					mat.node_tree.links.new(mapping_node1.outputs['Vector'], DetailMap_Diffuse_Sampler_tex.inputs['Vector'])
 
-					mat.node_tree.links.new(OverlayA_Sampler_tex.outputs[0], mix_rgb_node1.inputs[0])
-					mat.node_tree.links.new(DetailMap_Diffuse_Sampler_tex.outputs[0], mix_rgb_node1.inputs[1])
-					mat.node_tree.links.new(ColourMap_Sampler_tex.outputs[0], mix_rgb_node1.inputs[2])
+					mat.node_tree.links.new(OverlayA_Sampler_tex.outputs['Color'], mix_rgb_node1.inputs['Fac'])
+					mat.node_tree.links.new(DetailMap_Diffuse_Sampler_tex.outputs['Color'], mix_rgb_node1.inputs['Color1'])
+					mat.node_tree.links.new(ColourMap_Sampler_tex.outputs['Color'], mix_rgb_node1.inputs['Color2'])
 
-					mat.node_tree.links.new(OverlayB_Sampler_tex.outputs[0], mix_rgb_node2.inputs[0])
-					mat.node_tree.links.new(mix_rgb_node1.outputs[0], mix_rgb_node2.inputs[1])
+					mat.node_tree.links.new(OverlayB_Sampler_tex.outputs['Color'], mix_rgb_node2.inputs['Fac'])
+					mat.node_tree.links.new(mix_rgb_node1.outputs['Color'], mix_rgb_node2.inputs['Color1'])
 
-					mat.node_tree.links.new(uv_map_node2.outputs[0], Line_Diffuse_Sampler_tex.inputs[0])
-					mat.node_tree.links.new(Line_Diffuse_Sampler_tex.outputs[0], mix_rgb_node3.inputs[1])
-					mat.node_tree.links.new(Line_Diffuse_Sampler_tex.outputs[1], mix_rgb_node3.inputs[0])
+					mat.node_tree.links.new(uv_map_node2.outputs['UV'], Line_Diffuse_Sampler_tex.inputs['Vector'])
+					mat.node_tree.links.new(Line_Diffuse_Sampler_tex.outputs['Color'], mix_rgb_node3.inputs['Color1'])
+					mat.node_tree.links.new(Line_Diffuse_Sampler_tex.outputs['Alpha'], mix_rgb_node3.inputs['Fac'])
 
-					mat.node_tree.links.new(Line_Diffuse_Sampler_tex.outputs[1], mix_rgb_node4.inputs[0])
-					mat.node_tree.links.new(mix_rgb_node2.outputs[0], mix_rgb_node4.inputs[1])
-					mat.node_tree.links.new(mix_rgb_node3.outputs[0], mix_rgb_node4.inputs[2])
+					mat.node_tree.links.new(Line_Diffuse_Sampler_tex.outputs['Alpha'], mix_rgb_node4.inputs['Fac'])
+					mat.node_tree.links.new(mix_rgb_node2.outputs['Color'], mix_rgb_node4.inputs['Color1'])
+					mat.node_tree.links.new(mix_rgb_node3.outputs['Color'], mix_rgb_node4.inputs['Color2'])
 
-					mat.node_tree.links.new(mix_rgb_node4.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[0])
+					mat.node_tree.links.new(mix_rgb_node4.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Base Color'])
 
-					mat.node_tree.nodes[mMaterialId].inputs[6].default_value = 0.2
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 1.0
+					mat.node_tree.nodes[mMaterialId].inputs['Metallic'].default_value = 0.2
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 1.0
 
 					#Normal
 					mix_rgb_node3 = mat.node_tree.nodes.new(type='ShaderNodeMixRGB')
@@ -3009,24 +3009,24 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 					normal_map_node2 = mat.node_tree.nodes.new(type='ShaderNodeNormalMap')
 					normal_map_node1.uv_map = "UVMap"
 					normal_map_node2.uv_map = "UVMap"
-					normal_map_node1.inputs[0].default_value = 0.48
-					normal_map_node2.inputs[0].default_value = 0.4
+					normal_map_node1.inputs['Strength'].default_value = 0.48
+					normal_map_node2.inputs['Strength'].default_value = 0.4
 
 					CrackMap_UScale_VScale_UOffset_VOffset = parameters_Data[parameters_Names.index("CrackMap_UScale_VScale_UOffset_VOffset")]
 
 					mapping_node2.inputs[3].default_value[0] = CrackMap_UScale_VScale_UOffset_VOffset[0]*1.0
 					mapping_node2.inputs[3].default_value[1] = CrackMap_UScale_VScale_UOffset_VOffset[1]*1.0
 
-					mat.node_tree.links.new(uv_map_node1.outputs[0], mapping_node2.inputs[0])
-					mat.node_tree.links.new(mapping_node1.outputs[0], DetailMap_Normal_Sampler_tex.inputs[0])
-					mat.node_tree.links.new(mapping_node2.outputs[0], Crack_Normal_Sampler_tex.inputs[0])
+					mat.node_tree.links.new(uv_map_node1.outputs['UV'], mapping_node2.inputs[0])
+					mat.node_tree.links.new(mapping_node1.outputs['Vector'], DetailMap_Normal_Sampler_tex.inputs['Vector'])
+					mat.node_tree.links.new(mapping_node2.outputs['Vector'], Crack_Normal_Sampler_tex.inputs['Vector'])
 
-					mat.node_tree.links.new(Crack_Normal_Sampler_tex.outputs[0], normal_map_node1.inputs[1])
-					mat.node_tree.links.new(DetailMap_Normal_Sampler_tex.outputs[0], normal_map_node2.inputs[1])
+					mat.node_tree.links.new(Crack_Normal_Sampler_tex.outputs['Color'], normal_map_node1.inputs['Color'])
+					mat.node_tree.links.new(DetailMap_Normal_Sampler_tex.outputs['Color'], normal_map_node2.inputs['Color'])
 
-					mat.node_tree.links.new(normal_map_node1.outputs[0], mix_rgb_node3.inputs[1])
-					mat.node_tree.links.new(normal_map_node2.outputs[0], mix_rgb_node3.inputs[2])
-					mat.node_tree.links.new(mix_rgb_node3.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[22])
+					mat.node_tree.links.new(normal_map_node1.outputs['Normal'], mix_rgb_node3.inputs['Color1'])
+					mat.node_tree.links.new(normal_map_node2.outputs['Normal'], mix_rgb_node3.inputs['Color2'])
+					mat.node_tree.links.new(mix_rgb_node3.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Normal'])
 
 				elif shader_type == "DriveableSurface_RetroreflectivePaint_LineFade_Rotated_UV":
 					ColourMap_Sampler_tex = mat.node_tree.nodes['ColourMap_Sampler']
@@ -3060,37 +3060,37 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 					mix_rgb_node4.blend_type = "MIX"
 					uv_map_node1.uv_map = "UVMap"
 					uv_map_node2.uv_map = "UV3Map"
-					mix_rgb_node2.inputs[2].default_value = OverlayB_Diffuse
-					mix_rgb_node3.inputs[2].default_value = Line_Diffuse
+					mix_rgb_node2.inputs['Color2'].default_value = OverlayB_Diffuse
+					mix_rgb_node3.inputs['Color2'].default_value = Line_Diffuse
 
 					mapping_node1.inputs[3].default_value[0] = DetailMapUvScale[0]*10.0
 					mapping_node1.inputs[3].default_value[1] = DetailMapUvScale[1]*100.0
 
 					mapping_node2.inputs[2].default_value[2] = 1.570796326
 
-					mat.node_tree.links.new(uv_map_node1.outputs[0], mapping_node1.inputs[0])
-					mat.node_tree.links.new(mapping_node1.outputs[0], DetailMap_Diffuse_Sampler_tex.inputs[0])
+					mat.node_tree.links.new(uv_map_node1.outputs['UV'], mapping_node1.inputs[0])
+					mat.node_tree.links.new(mapping_node1.outputs['Vector'], DetailMap_Diffuse_Sampler_tex.inputs['Vector'])
 
-					mat.node_tree.links.new(OverlayA_Sampler_tex.outputs[0], mix_rgb_node1.inputs[0])
-					mat.node_tree.links.new(DetailMap_Diffuse_Sampler_tex.outputs[0], mix_rgb_node1.inputs[1])
-					mat.node_tree.links.new(ColourMap_Sampler_tex.outputs[0], mix_rgb_node1.inputs[2])
+					mat.node_tree.links.new(OverlayA_Sampler_tex.outputs['Color'], mix_rgb_node1.inputs['Fac'])
+					mat.node_tree.links.new(DetailMap_Diffuse_Sampler_tex.outputs['Color'], mix_rgb_node1.inputs['Color1'])
+					mat.node_tree.links.new(ColourMap_Sampler_tex.outputs['Color'], mix_rgb_node1.inputs['Color2'])
 
-					mat.node_tree.links.new(OverlayB_Sampler_tex.outputs[0], mix_rgb_node2.inputs[0])
-					mat.node_tree.links.new(mix_rgb_node1.outputs[0], mix_rgb_node2.inputs[1])
+					mat.node_tree.links.new(OverlayB_Sampler_tex.outputs['Color'], mix_rgb_node2.inputs['Fac'])
+					mat.node_tree.links.new(mix_rgb_node1.outputs['Color'], mix_rgb_node2.inputs['Color1'])
 
-					mat.node_tree.links.new(uv_map_node2.outputs[0], mapping_node2.inputs[0])
-					mat.node_tree.links.new(mapping_node2.outputs[0], Line_Diffuse_Sampler_tex.inputs[0])
-					mat.node_tree.links.new(Line_Diffuse_Sampler_tex.outputs[0], mix_rgb_node3.inputs[1])
-					mat.node_tree.links.new(Line_Diffuse_Sampler_tex.outputs[1], mix_rgb_node3.inputs[0])
+					mat.node_tree.links.new(uv_map_node2.outputs['UV'], mapping_node2.inputs[0])
+					mat.node_tree.links.new(mapping_node2.outputs['Vector'], Line_Diffuse_Sampler_tex.inputs['Vector'])
+					mat.node_tree.links.new(Line_Diffuse_Sampler_tex.outputs['Color'], mix_rgb_node3.inputs['Color1'])
+					mat.node_tree.links.new(Line_Diffuse_Sampler_tex.outputs['Alpha'], mix_rgb_node3.inputs['Fac'])
 
-					mat.node_tree.links.new(Line_Diffuse_Sampler_tex.outputs[1], mix_rgb_node4.inputs[0])
-					mat.node_tree.links.new(mix_rgb_node2.outputs[0], mix_rgb_node4.inputs[1])
-					mat.node_tree.links.new(mix_rgb_node3.outputs[0], mix_rgb_node4.inputs[2])
+					mat.node_tree.links.new(Line_Diffuse_Sampler_tex.outputs['Alpha'], mix_rgb_node4.inputs['Fac'])
+					mat.node_tree.links.new(mix_rgb_node2.outputs['Color'], mix_rgb_node4.inputs['Color1'])
+					mat.node_tree.links.new(mix_rgb_node3.outputs['Color'], mix_rgb_node4.inputs['Color2'])
 
-					mat.node_tree.links.new(mix_rgb_node4.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[0])
+					mat.node_tree.links.new(mix_rgb_node4.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Base Color'])
 
-					mat.node_tree.nodes[mMaterialId].inputs[6].default_value = 0.2
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 1.0
+					mat.node_tree.nodes[mMaterialId].inputs['Metallic'].default_value = 0.2
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 1.0
 
 					#Normal
 					mix_rgb_node3 = mat.node_tree.nodes.new(type='ShaderNodeMixRGB')
@@ -3099,24 +3099,24 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 					normal_map_node2 = mat.node_tree.nodes.new(type='ShaderNodeNormalMap')
 					normal_map_node1.uv_map = "UVMap"
 					normal_map_node2.uv_map = "UVMap"
-					normal_map_node1.inputs[0].default_value = 0.48
-					normal_map_node2.inputs[0].default_value = 0.4
+					normal_map_node1.inputs['Strength'].default_value = 0.48
+					normal_map_node2.inputs['Strength'].default_value = 0.4
 
 					CrackMap_UScale_VScale_UOffset_VOffset = parameters_Data[parameters_Names.index("CrackMap_UScale_VScale_UOffset_VOffset")]
 
 					mapping_node2.inputs[3].default_value[0] = CrackMap_UScale_VScale_UOffset_VOffset[0]*1.0
 					mapping_node2.inputs[3].default_value[1] = CrackMap_UScale_VScale_UOffset_VOffset[1]*1.0
 
-					mat.node_tree.links.new(uv_map_node1.outputs[0], mapping_node2.inputs[0])
-					mat.node_tree.links.new(mapping_node1.outputs[0], DetailMap_Normal_Sampler_tex.inputs[0])
-					mat.node_tree.links.new(mapping_node2.outputs[0], Crack_Normal_Sampler_tex.inputs[0])
+					mat.node_tree.links.new(uv_map_node1.outputs['UV'], mapping_node2.inputs[0])
+					mat.node_tree.links.new(mapping_node1.outputs['Vector'], DetailMap_Normal_Sampler_tex.inputs['Vector'])
+					mat.node_tree.links.new(mapping_node2.outputs['Vector'], Crack_Normal_Sampler_tex.inputs['Vector'])
 
-					mat.node_tree.links.new(Crack_Normal_Sampler_tex.outputs[0], normal_map_node1.inputs[1])
-					mat.node_tree.links.new(DetailMap_Normal_Sampler_tex.outputs[0], normal_map_node2.inputs[1])
+					mat.node_tree.links.new(Crack_Normal_Sampler_tex.outputs['Color'], normal_map_node1.inputs['Color'])
+					mat.node_tree.links.new(DetailMap_Normal_Sampler_tex.outputs['Color'], normal_map_node2.inputs['Color'])
 
-					mat.node_tree.links.new(normal_map_node1.outputs[0], mix_rgb_node3.inputs[1])
-					mat.node_tree.links.new(normal_map_node2.outputs[0], mix_rgb_node3.inputs[2])
-					mat.node_tree.links.new(mix_rgb_node3.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[22])
+					mat.node_tree.links.new(normal_map_node1.outputs['Normal'], mix_rgb_node3.inputs['Color1'])
+					mat.node_tree.links.new(normal_map_node2.outputs['Normal'], mix_rgb_node3.inputs['Color2'])
+					mat.node_tree.links.new(mix_rgb_node3.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Normal'])
 
 				elif shader_type == "DriveableSurface_RetroreflectivePaint_LineFade_Rotated_UV_02":
 					ColourMap_Sampler_tex = mat.node_tree.nodes['ColourMap_Sampler']
@@ -3150,37 +3150,37 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 					mix_rgb_node4.blend_type = "MIX"
 					uv_map_node1.uv_map = "UVMap"
 					uv_map_node2.uv_map = "UV3Map"
-					mix_rgb_node2.inputs[2].default_value = OverlayB_Diffuse
-					mix_rgb_node3.inputs[2].default_value = Line_Diffuse
+					mix_rgb_node2.inputs['Color2'].default_value = OverlayB_Diffuse
+					mix_rgb_node3.inputs['Color2'].default_value = Line_Diffuse
 
 					mapping_node1.inputs[3].default_value[0] = DetailMapUvScale[0]*10.0
 					mapping_node1.inputs[3].default_value[1] = DetailMapUvScale[1]*100.0
 
 					mapping_node2.inputs[2].default_value[2] = 1.570796326
 
-					mat.node_tree.links.new(uv_map_node1.outputs[0], mapping_node1.inputs[0])
-					mat.node_tree.links.new(mapping_node1.outputs[0], DetailMap_Diffuse_Sampler_tex.inputs[0])
+					mat.node_tree.links.new(uv_map_node1.outputs['UV'], mapping_node1.inputs[0])
+					mat.node_tree.links.new(mapping_node1.outputs['Vector'], DetailMap_Diffuse_Sampler_tex.inputs['Vector'])
 
-					mat.node_tree.links.new(OverlayA_Sampler_tex.outputs[0], mix_rgb_node1.inputs[0])
-					mat.node_tree.links.new(DetailMap_Diffuse_Sampler_tex.outputs[0], mix_rgb_node1.inputs[1])
-					mat.node_tree.links.new(ColourMap_Sampler_tex.outputs[0], mix_rgb_node1.inputs[2])
+					mat.node_tree.links.new(OverlayA_Sampler_tex.outputs['Color'], mix_rgb_node1.inputs['Fac'])
+					mat.node_tree.links.new(DetailMap_Diffuse_Sampler_tex.outputs['Color'], mix_rgb_node1.inputs['Color1'])
+					mat.node_tree.links.new(ColourMap_Sampler_tex.outputs['Color'], mix_rgb_node1.inputs['Color2'])
 
-					mat.node_tree.links.new(OverlayB_Sampler_tex.outputs[0], mix_rgb_node2.inputs[0])
-					mat.node_tree.links.new(mix_rgb_node1.outputs[0], mix_rgb_node2.inputs[1])
+					mat.node_tree.links.new(OverlayB_Sampler_tex.outputs['Color'], mix_rgb_node2.inputs['Fac'])
+					mat.node_tree.links.new(mix_rgb_node1.outputs['Color'], mix_rgb_node2.inputs['Color1'])
 
-					mat.node_tree.links.new(uv_map_node2.outputs[0], mapping_node2.inputs[0])
-					mat.node_tree.links.new(mapping_node2.outputs[0], Line_Diffuse_Sampler_tex.inputs[0])
-					mat.node_tree.links.new(Line_Diffuse_Sampler_tex.outputs[0], mix_rgb_node3.inputs[1])
-					mat.node_tree.links.new(Line_Diffuse_Sampler_tex.outputs[1], mix_rgb_node3.inputs[0])
+					mat.node_tree.links.new(uv_map_node2.outputs['UV'], mapping_node2.inputs[0])
+					mat.node_tree.links.new(mapping_node2.outputs['Vector'], Line_Diffuse_Sampler_tex.inputs['Vector'])
+					mat.node_tree.links.new(Line_Diffuse_Sampler_tex.outputs['Color'], mix_rgb_node3.inputs['Color1'])
+					mat.node_tree.links.new(Line_Diffuse_Sampler_tex.outputs['Alpha'], mix_rgb_node3.inputs['Fac'])
 
-					mat.node_tree.links.new(Line_Diffuse_Sampler_tex.outputs[1], mix_rgb_node4.inputs[0])
-					mat.node_tree.links.new(mix_rgb_node2.outputs[0], mix_rgb_node4.inputs[1])
-					mat.node_tree.links.new(mix_rgb_node3.outputs[0], mix_rgb_node4.inputs[2])
+					mat.node_tree.links.new(Line_Diffuse_Sampler_tex.outputs['Alpha'], mix_rgb_node4.inputs['Fac'])
+					mat.node_tree.links.new(mix_rgb_node2.outputs['Color'], mix_rgb_node4.inputs['Color1'])
+					mat.node_tree.links.new(mix_rgb_node3.outputs['Color'], mix_rgb_node4.inputs['Color2'])
 
-					mat.node_tree.links.new(mix_rgb_node4.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[0])
+					mat.node_tree.links.new(mix_rgb_node4.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Base Color'])
 
-					mat.node_tree.nodes[mMaterialId].inputs[6].default_value = 0.2
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 1.0
+					mat.node_tree.nodes[mMaterialId].inputs['Metallic'].default_value = 0.2
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 1.0
 
 					#Normal
 					mix_rgb_node3 = mat.node_tree.nodes.new(type='ShaderNodeMixRGB')
@@ -3189,24 +3189,24 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 					normal_map_node2 = mat.node_tree.nodes.new(type='ShaderNodeNormalMap')
 					normal_map_node1.uv_map = "UVMap"
 					normal_map_node2.uv_map = "UVMap"
-					normal_map_node1.inputs[0].default_value = 0.48
-					normal_map_node2.inputs[0].default_value = 0.4
+					normal_map_node1.inputs['Strength'].default_value = 0.48
+					normal_map_node2.inputs['Strength'].default_value = 0.4
 
 					CrackMap_UScale_VScale_UOffset_VOffset = parameters_Data[parameters_Names.index("CrackMap_UScale_VScale_UOffset_VOffset")]
 
 					mapping_node4.inputs[3].default_value[0] = CrackMap_UScale_VScale_UOffset_VOffset[0]*1.0
 					mapping_node4.inputs[3].default_value[1] = CrackMap_UScale_VScale_UOffset_VOffset[1]*1.0
 
-					mat.node_tree.links.new(uv_map_node1.outputs[0], mapping_node4.inputs[0])
-					mat.node_tree.links.new(mapping_node1.outputs[0], DetailMap_Normal_Sampler_tex.inputs[0])
-					mat.node_tree.links.new(mapping_node4.outputs[0], Crack_Normal_Sampler_tex.inputs[0])
+					mat.node_tree.links.new(uv_map_node1.outputs['UV'], mapping_node4.inputs[0])
+					mat.node_tree.links.new(mapping_node1.outputs['Vector'], DetailMap_Normal_Sampler_tex.inputs['Vector'])
+					mat.node_tree.links.new(mapping_node4.outputs['Vector'], Crack_Normal_Sampler_tex.inputs['Vector'])
 
-					mat.node_tree.links.new(Crack_Normal_Sampler_tex.outputs[0], normal_map_node1.inputs[1])
-					mat.node_tree.links.new(DetailMap_Normal_Sampler_tex.outputs[0], normal_map_node2.inputs[1])
+					mat.node_tree.links.new(Crack_Normal_Sampler_tex.outputs['Color'], normal_map_node1.inputs['Color'])
+					mat.node_tree.links.new(DetailMap_Normal_Sampler_tex.outputs['Color'], normal_map_node2.inputs['Color'])
 
-					mat.node_tree.links.new(normal_map_node1.outputs[0], mix_rgb_node3.inputs[1])
-					mat.node_tree.links.new(normal_map_node2.outputs[0], mix_rgb_node3.inputs[2])
-					mat.node_tree.links.new(mix_rgb_node3.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[22])
+					mat.node_tree.links.new(normal_map_node1.outputs['Normal'], mix_rgb_node3.inputs['Color1'])
+					mat.node_tree.links.new(normal_map_node2.outputs['Normal'], mix_rgb_node3.inputs['Color2'])
+					mat.node_tree.links.new(mix_rgb_node3.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Normal'])
 
 				elif shader_type == "DriveableSurface_RetroreflectivePaint_Lightmap":
 					ColourMap_Sampler_tex = mat.node_tree.nodes['ColourMap_Sampler']
@@ -3233,30 +3233,30 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 					mix_rgb_node4.blend_type = "MIX"
 					uv_map_node1.uv_map = "UVMap"
 					uv_map_node2.uv_map = "UV3Map"
-					mix_rgb_node3.inputs[2].default_value = Line_Diffuse
+					mix_rgb_node3.inputs['Color2'].default_value = Line_Diffuse
 
 					mapping_node1.inputs[3].default_value[0] = DetailMapUvScale[0]*10.0
 					mapping_node1.inputs[3].default_value[1] = DetailMapUvScale[1]*100.0
 
-					mat.node_tree.links.new(uv_map_node1.outputs[0], mapping_node1.inputs[0])
-					mat.node_tree.links.new(mapping_node1.outputs[0], DetailMap_Diffuse_Sampler_tex.inputs[0])
+					mat.node_tree.links.new(uv_map_node1.outputs['UV'], mapping_node1.inputs[0])
+					mat.node_tree.links.new(mapping_node1.outputs['Vector'], DetailMap_Diffuse_Sampler_tex.inputs['Vector'])
 
-					mat.node_tree.links.new(ColourMap_Sampler_tex.outputs[1], mix_rgb_node1.inputs[0])
-					mat.node_tree.links.new(DetailMap_Diffuse_Sampler_tex.outputs[0], mix_rgb_node1.inputs[1])
-					mat.node_tree.links.new(ColourMap_Sampler_tex.outputs[0], mix_rgb_node1.inputs[2])
+					mat.node_tree.links.new(ColourMap_Sampler_tex.outputs['Alpha'], mix_rgb_node1.inputs['Fac'])
+					mat.node_tree.links.new(DetailMap_Diffuse_Sampler_tex.outputs['Color'], mix_rgb_node1.inputs['Color1'])
+					mat.node_tree.links.new(ColourMap_Sampler_tex.outputs['Color'], mix_rgb_node1.inputs['Color2'])
 
-					mat.node_tree.links.new(uv_map_node2.outputs[0], Line_Diffuse_Sampler_tex.inputs[0])
-					mat.node_tree.links.new(Line_Diffuse_Sampler_tex.outputs[0], mix_rgb_node3.inputs[1])
-					mat.node_tree.links.new(Line_Diffuse_Sampler_tex.outputs[1], mix_rgb_node3.inputs[0])
+					mat.node_tree.links.new(uv_map_node2.outputs['UV'], Line_Diffuse_Sampler_tex.inputs['Vector'])
+					mat.node_tree.links.new(Line_Diffuse_Sampler_tex.outputs['Color'], mix_rgb_node3.inputs['Color1'])
+					mat.node_tree.links.new(Line_Diffuse_Sampler_tex.outputs['Alpha'], mix_rgb_node3.inputs['Fac'])
 
-					mat.node_tree.links.new(Line_Diffuse_Sampler_tex.outputs[1], mix_rgb_node4.inputs[0])
-					mat.node_tree.links.new(mix_rgb_node1.outputs[0], mix_rgb_node4.inputs[1])
-					mat.node_tree.links.new(mix_rgb_node3.outputs[0], mix_rgb_node4.inputs[2])
+					mat.node_tree.links.new(Line_Diffuse_Sampler_tex.outputs['Alpha'], mix_rgb_node4.inputs['Fac'])
+					mat.node_tree.links.new(mix_rgb_node1.outputs['Color'], mix_rgb_node4.inputs['Color1'])
+					mat.node_tree.links.new(mix_rgb_node3.outputs['Color'], mix_rgb_node4.inputs['Color2'])
 
-					mat.node_tree.links.new(mix_rgb_node4.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[0])
+					mat.node_tree.links.new(mix_rgb_node4.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Base Color'])
 
-					mat.node_tree.nodes[mMaterialId].inputs[6].default_value = 0.2
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 1.0
+					mat.node_tree.nodes[mMaterialId].inputs['Metallic'].default_value = 0.2
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 1.0
 
 					#Normal
 					mix_rgb_node5 = mat.node_tree.nodes.new(type='ShaderNodeMixRGB')
@@ -3270,14 +3270,14 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 					mapping_node2.inputs[3].default_value[0] = CrackMap_UScale_VScale_UOffset_VOffset[0]*1.0
 					mapping_node2.inputs[3].default_value[1] = CrackMap_UScale_VScale_UOffset_VOffset[1]*1.0
 
-					mat.node_tree.links.new(uv_map_node3.outputs[0], mapping_node2.inputs[0])
-					mat.node_tree.links.new(mapping_node2.outputs[0], Crack_Normal_Sampler_tex.inputs[0])
+					mat.node_tree.links.new(uv_map_node3.outputs['UV'], mapping_node2.inputs[0])
+					mat.node_tree.links.new(mapping_node2.outputs['Vector'], Crack_Normal_Sampler_tex.inputs['Vector'])
 
-					mat.node_tree.links.new(mapping_node1.outputs[0], DetailMap_Normal_Sampler_tex.inputs[0])
+					mat.node_tree.links.new(mapping_node1.outputs['Vector'], DetailMap_Normal_Sampler_tex.inputs['Vector'])
 
-					mat.node_tree.links.new(Crack_Normal_Sampler_tex.outputs[0], mix_rgb_node5.inputs[1])
-					mat.node_tree.links.new(DetailMap_Normal_Sampler_tex.outputs[0], mix_rgb_node5.inputs[2])
-					mat.node_tree.links.new(mix_rgb_node5.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[22])
+					mat.node_tree.links.new(Crack_Normal_Sampler_tex.outputs['Color'], mix_rgb_node5.inputs['Color1'])
+					mat.node_tree.links.new(DetailMap_Normal_Sampler_tex.outputs['Color'], mix_rgb_node5.inputs['Color2'])
+					mat.node_tree.links.new(mix_rgb_node5.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Normal'])
 
 				elif shader_type == "DriveableSurface_RetroreflectivePaint_Lightmap_Car_Select":
 					ColourMap_Sampler_tex = mat.node_tree.nodes['ColourMap_Sampler']
@@ -3304,30 +3304,30 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 					mix_rgb_node4.blend_type = "MIX"
 					uv_map_node1.uv_map = "UVMap"
 					uv_map_node2.uv_map = "UV3Map"
-					mix_rgb_node3.inputs[2].default_value = Line_Diffuse
+					mix_rgb_node3.inputs['Color2'].default_value = Line_Diffuse
 
 					mapping_node1.inputs[3].default_value[0] = DetailMapUvScale[0]*10.0
 					mapping_node1.inputs[3].default_value[1] = DetailMapUvScale[1]*100.0
 
-					mat.node_tree.links.new(uv_map_node1.outputs[0], mapping_node1.inputs[0])
-					mat.node_tree.links.new(mapping_node1.outputs[0], DetailMap_Diffuse_Sampler_tex.inputs[0])
+					mat.node_tree.links.new(uv_map_node1.outputs['UV'], mapping_node1.inputs[0])
+					mat.node_tree.links.new(mapping_node1.outputs['Vector'], DetailMap_Diffuse_Sampler_tex.inputs['Vector'])
 
-					mat.node_tree.links.new(ColourMap_Sampler_tex.outputs[1], mix_rgb_node1.inputs[0])
-					mat.node_tree.links.new(DetailMap_Diffuse_Sampler_tex.outputs[0], mix_rgb_node1.inputs[1])
-					mat.node_tree.links.new(ColourMap_Sampler_tex.outputs[0], mix_rgb_node1.inputs[2])
+					mat.node_tree.links.new(ColourMap_Sampler_tex.outputs['Alpha'], mix_rgb_node1.inputs['Fac'])
+					mat.node_tree.links.new(DetailMap_Diffuse_Sampler_tex.outputs['Color'], mix_rgb_node1.inputs['Color1'])
+					mat.node_tree.links.new(ColourMap_Sampler_tex.outputs['Color'], mix_rgb_node1.inputs['Color2'])
 
-					mat.node_tree.links.new(uv_map_node2.outputs[0], Line_Diffuse_Sampler_tex.inputs[0])
-					mat.node_tree.links.new(Line_Diffuse_Sampler_tex.outputs[0], mix_rgb_node3.inputs[1])
-					mat.node_tree.links.new(Line_Diffuse_Sampler_tex.outputs[1], mix_rgb_node3.inputs[0])
+					mat.node_tree.links.new(uv_map_node2.outputs['UV'], Line_Diffuse_Sampler_tex.inputs['Vector'])
+					mat.node_tree.links.new(Line_Diffuse_Sampler_tex.outputs['Color'], mix_rgb_node3.inputs['Color1'])
+					mat.node_tree.links.new(Line_Diffuse_Sampler_tex.outputs['Alpha'], mix_rgb_node3.inputs['Fac'])
 
-					mat.node_tree.links.new(Line_Diffuse_Sampler_tex.outputs[1], mix_rgb_node4.inputs[0])
-					mat.node_tree.links.new(mix_rgb_node1.outputs[0], mix_rgb_node4.inputs[1])
-					mat.node_tree.links.new(mix_rgb_node3.outputs[0], mix_rgb_node4.inputs[2])
+					mat.node_tree.links.new(Line_Diffuse_Sampler_tex.outputs['Alpha'], mix_rgb_node4.inputs['Fac'])
+					mat.node_tree.links.new(mix_rgb_node1.outputs['Color'], mix_rgb_node4.inputs['Color1'])
+					mat.node_tree.links.new(mix_rgb_node3.outputs['Color'], mix_rgb_node4.inputs['Color2'])
 
-					mat.node_tree.links.new(mix_rgb_node4.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[0])
+					mat.node_tree.links.new(mix_rgb_node4.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Base Color'])
 
-					mat.node_tree.nodes[mMaterialId].inputs[6].default_value = 0.2
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 1.0
+					mat.node_tree.nodes[mMaterialId].inputs['Metallic'].default_value = 0.2
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 1.0
 
 					#Normal
 					mix_rgb_node5 = mat.node_tree.nodes.new(type='ShaderNodeMixRGB')
@@ -3341,14 +3341,14 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 					mapping_node2.inputs[3].default_value[0] = CrackMap_UScale_VScale_UOffset_VOffset[0]*1.0
 					mapping_node2.inputs[3].default_value[1] = CrackMap_UScale_VScale_UOffset_VOffset[1]*1.0
 
-					mat.node_tree.links.new(uv_map_node3.outputs[0], mapping_node2.inputs[0])
-					mat.node_tree.links.new(mapping_node2.outputs[0], Crack_Normal_Sampler_tex.inputs[0])
+					mat.node_tree.links.new(uv_map_node3.outputs['UV'], mapping_node2.inputs[0])
+					mat.node_tree.links.new(mapping_node2.outputs['Vector'], Crack_Normal_Sampler_tex.inputs['Vector'])
 
-					mat.node_tree.links.new(mapping_node1.outputs[0], DetailMap_Normal_Sampler_tex.inputs[0])
+					mat.node_tree.links.new(mapping_node1.outputs['Vector'], DetailMap_Normal_Sampler_tex.inputs['Vector'])
 
-					mat.node_tree.links.new(Crack_Normal_Sampler_tex.outputs[0], mix_rgb_node5.inputs[1])
-					mat.node_tree.links.new(DetailMap_Normal_Sampler_tex.outputs[0], mix_rgb_node5.inputs[2])
-					mat.node_tree.links.new(mix_rgb_node5.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[22])
+					mat.node_tree.links.new(Crack_Normal_Sampler_tex.outputs['Color'], mix_rgb_node5.inputs['Color1'])
+					mat.node_tree.links.new(DetailMap_Normal_Sampler_tex.outputs['Color'], mix_rgb_node5.inputs['Color2'])
+					mat.node_tree.links.new(mix_rgb_node5.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Normal'])
 
 				elif shader_type == "DriveableSurface_RetroreflectivePaint_Lightmap_LineFade":
 					ColourMap_Sampler_tex = mat.node_tree.nodes['ColourMap_Sampler']
@@ -3375,30 +3375,30 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 					mix_rgb_node4.blend_type = "MIX"
 					uv_map_node1.uv_map = "UVMap"
 					uv_map_node2.uv_map = "UV3Map"
-					mix_rgb_node3.inputs[2].default_value = Line_Diffuse
+					mix_rgb_node3.inputs['Color2'].default_value = Line_Diffuse
 
 					mapping_node1.inputs[3].default_value[0] = DetailMapUvScale[0]*10.0
 					mapping_node1.inputs[3].default_value[1] = DetailMapUvScale[1]*100.0
 
-					mat.node_tree.links.new(uv_map_node1.outputs[0], mapping_node1.inputs[0])
-					mat.node_tree.links.new(mapping_node1.outputs[0], DetailMap_Diffuse_Sampler_tex.inputs[0])
+					mat.node_tree.links.new(uv_map_node1.outputs['UV'], mapping_node1.inputs[0])
+					mat.node_tree.links.new(mapping_node1.outputs['Vector'], DetailMap_Diffuse_Sampler_tex.inputs['Vector'])
 
-					mat.node_tree.links.new(ColourMap_Sampler_tex.outputs[1], mix_rgb_node1.inputs[0])
-					mat.node_tree.links.new(DetailMap_Diffuse_Sampler_tex.outputs[0], mix_rgb_node1.inputs[1])
-					mat.node_tree.links.new(ColourMap_Sampler_tex.outputs[0], mix_rgb_node1.inputs[2])
+					mat.node_tree.links.new(ColourMap_Sampler_tex.outputs['Alpha'], mix_rgb_node1.inputs['Fac'])
+					mat.node_tree.links.new(DetailMap_Diffuse_Sampler_tex.outputs['Color'], mix_rgb_node1.inputs['Color1'])
+					mat.node_tree.links.new(ColourMap_Sampler_tex.outputs['Color'], mix_rgb_node1.inputs['Color2'])
 
-					mat.node_tree.links.new(uv_map_node2.outputs[0], Line_Diffuse_Sampler_tex.inputs[0])
-					mat.node_tree.links.new(Line_Diffuse_Sampler_tex.outputs[0], mix_rgb_node3.inputs[1])
-					mat.node_tree.links.new(Line_Diffuse_Sampler_tex.outputs[1], mix_rgb_node3.inputs[0])
+					mat.node_tree.links.new(uv_map_node2.outputs['UV'], Line_Diffuse_Sampler_tex.inputs['Vector'])
+					mat.node_tree.links.new(Line_Diffuse_Sampler_tex.outputs['Color'], mix_rgb_node3.inputs['Color1'])
+					mat.node_tree.links.new(Line_Diffuse_Sampler_tex.outputs['Alpha'], mix_rgb_node3.inputs['Fac'])
 
-					mat.node_tree.links.new(Line_Diffuse_Sampler_tex.outputs[1], mix_rgb_node4.inputs[0])
-					mat.node_tree.links.new(mix_rgb_node1.outputs[0], mix_rgb_node4.inputs[1])
-					mat.node_tree.links.new(mix_rgb_node3.outputs[0], mix_rgb_node4.inputs[2])
+					mat.node_tree.links.new(Line_Diffuse_Sampler_tex.outputs['Alpha'], mix_rgb_node4.inputs['Fac'])
+					mat.node_tree.links.new(mix_rgb_node1.outputs['Color'], mix_rgb_node4.inputs['Color1'])
+					mat.node_tree.links.new(mix_rgb_node3.outputs['Color'], mix_rgb_node4.inputs['Color2'])
 
-					mat.node_tree.links.new(mix_rgb_node4.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[0])
+					mat.node_tree.links.new(mix_rgb_node4.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Base Color'])
 
-					mat.node_tree.nodes[mMaterialId].inputs[6].default_value = 0.2
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 1.0
+					mat.node_tree.nodes[mMaterialId].inputs['Metallic'].default_value = 0.2
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 1.0
 
 					#Normal
 					mix_rgb_node5 = mat.node_tree.nodes.new(type='ShaderNodeMixRGB')
@@ -3412,14 +3412,14 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 					mapping_node2.inputs[3].default_value[0] = CrackMap_UScale_VScale_UOffset_VOffset[0]*1.0
 					mapping_node2.inputs[3].default_value[1] = CrackMap_UScale_VScale_UOffset_VOffset[1]*1.0
 
-					mat.node_tree.links.new(uv_map_node3.outputs[0], mapping_node2.inputs[0])
-					mat.node_tree.links.new(mapping_node2.outputs[0], Crack_Normal_Sampler_tex.inputs[0])
+					mat.node_tree.links.new(uv_map_node3.outputs['UV'], mapping_node2.inputs[0])
+					mat.node_tree.links.new(mapping_node2.outputs['Vector'], Crack_Normal_Sampler_tex.inputs['Vector'])
 
-					mat.node_tree.links.new(mapping_node1.outputs[0], DetailMap_Normal_Sampler_tex.inputs[0])
+					mat.node_tree.links.new(mapping_node1.outputs['Vector'], DetailMap_Normal_Sampler_tex.inputs['Vector'])
 
-					mat.node_tree.links.new(Crack_Normal_Sampler_tex.outputs[0], mix_rgb_node5.inputs[1])
-					mat.node_tree.links.new(DetailMap_Normal_Sampler_tex.outputs[0], mix_rgb_node5.inputs[2])
-					mat.node_tree.links.new(mix_rgb_node5.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[22])
+					mat.node_tree.links.new(Crack_Normal_Sampler_tex.outputs['Color'], mix_rgb_node5.inputs['Color1'])
+					mat.node_tree.links.new(DetailMap_Normal_Sampler_tex.outputs['Color'], mix_rgb_node5.inputs['Color2'])
+					mat.node_tree.links.new(mix_rgb_node5.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Normal'])
 
 				elif shader_type == "DriveableSurface_RetroreflectivePaint_Lightmap_LineFade_rotatedUV_02":
 					ColourMap_Sampler_tex = mat.node_tree.nodes['ColourMap_Sampler']
@@ -3447,33 +3447,33 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 					mix_rgb_node4.blend_type = "MIX"
 					uv_map_node1.uv_map = "UVMap"
 					uv_map_node2.uv_map = "UV3Map"
-					mix_rgb_node3.inputs[2].default_value = Line_Diffuse
+					mix_rgb_node3.inputs['Color2'].default_value = Line_Diffuse
 
 					mapping_node1.inputs[3].default_value[0] = DetailMapUvScale[0]*10.0
 					mapping_node1.inputs[3].default_value[1] = DetailMapUvScale[1]*100.0
 
 					mapping_node2.inputs[2].default_value[2] = 1.570796326
 
-					mat.node_tree.links.new(uv_map_node1.outputs[0], mapping_node1.inputs[0])
-					mat.node_tree.links.new(mapping_node1.outputs[0], DetailMap_Diffuse_Sampler_tex.inputs[0])
+					mat.node_tree.links.new(uv_map_node1.outputs['UV'], mapping_node1.inputs[0])
+					mat.node_tree.links.new(mapping_node1.outputs['Vector'], DetailMap_Diffuse_Sampler_tex.inputs['Vector'])
 
-					mat.node_tree.links.new(ColourMap_Sampler_tex.outputs[1], mix_rgb_node1.inputs[0])
-					mat.node_tree.links.new(DetailMap_Diffuse_Sampler_tex.outputs[0], mix_rgb_node1.inputs[1])
-					mat.node_tree.links.new(ColourMap_Sampler_tex.outputs[0], mix_rgb_node1.inputs[2])
+					mat.node_tree.links.new(ColourMap_Sampler_tex.outputs['Alpha'], mix_rgb_node1.inputs['Fac'])
+					mat.node_tree.links.new(DetailMap_Diffuse_Sampler_tex.outputs['Color'], mix_rgb_node1.inputs['Color1'])
+					mat.node_tree.links.new(ColourMap_Sampler_tex.outputs['Color'], mix_rgb_node1.inputs['Color2'])
 
-					mat.node_tree.links.new(uv_map_node2.outputs[0], mapping_node2.inputs[0])
-					mat.node_tree.links.new(mapping_node2.outputs[0], Line_Diffuse_Sampler_tex.inputs[0])
-					mat.node_tree.links.new(Line_Diffuse_Sampler_tex.outputs[0], mix_rgb_node3.inputs[1])
-					mat.node_tree.links.new(Line_Diffuse_Sampler_tex.outputs[1], mix_rgb_node3.inputs[0])
+					mat.node_tree.links.new(uv_map_node2.outputs['UV'], mapping_node2.inputs[0])
+					mat.node_tree.links.new(mapping_node2.outputs['Vector'], Line_Diffuse_Sampler_tex.inputs['Vector'])
+					mat.node_tree.links.new(Line_Diffuse_Sampler_tex.outputs['Color'], mix_rgb_node3.inputs['Color1'])
+					mat.node_tree.links.new(Line_Diffuse_Sampler_tex.outputs['Alpha'], mix_rgb_node3.inputs['Fac'])
 
-					mat.node_tree.links.new(Line_Diffuse_Sampler_tex.outputs[1], mix_rgb_node4.inputs[0])
-					mat.node_tree.links.new(mix_rgb_node1.outputs[0], mix_rgb_node4.inputs[1])
-					mat.node_tree.links.new(mix_rgb_node3.outputs[0], mix_rgb_node4.inputs[2])
+					mat.node_tree.links.new(Line_Diffuse_Sampler_tex.outputs['Alpha'], mix_rgb_node4.inputs['Fac'])
+					mat.node_tree.links.new(mix_rgb_node1.outputs['Color'], mix_rgb_node4.inputs['Color1'])
+					mat.node_tree.links.new(mix_rgb_node3.outputs['Color'], mix_rgb_node4.inputs['Color2'])
 
-					mat.node_tree.links.new(mix_rgb_node4.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[0])
+					mat.node_tree.links.new(mix_rgb_node4.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Base Color'])
 
-					mat.node_tree.nodes[mMaterialId].inputs[6].default_value = 0.2
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 1.0
+					mat.node_tree.nodes[mMaterialId].inputs['Metallic'].default_value = 0.2
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 1.0
 
 					#Normal
 					mix_rgb_node5 = mat.node_tree.nodes.new(type='ShaderNodeMixRGB')
@@ -3487,14 +3487,14 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 					mapping_node3.inputs[3].default_value[0] = CrackMap_UScale_VScale_UOffset_VOffset[0]*1.0
 					mapping_node3.inputs[3].default_value[1] = CrackMap_UScale_VScale_UOffset_VOffset[1]*1.0
 
-					mat.node_tree.links.new(uv_map_node3.outputs[0], mapping_node3.inputs[0])
-					mat.node_tree.links.new(mapping_node3.outputs[0], Crack_Normal_Sampler_tex.inputs[0])
+					mat.node_tree.links.new(uv_map_node3.outputs['UV'], mapping_node3.inputs[0])
+					mat.node_tree.links.new(mapping_node3.outputs['Vector'], Crack_Normal_Sampler_tex.inputs['Vector'])
 
-					mat.node_tree.links.new(mapping_node1.outputs[0], DetailMap_Normal_Sampler_tex.inputs[0])
+					mat.node_tree.links.new(mapping_node1.outputs['Vector'], DetailMap_Normal_Sampler_tex.inputs['Vector'])
 
-					mat.node_tree.links.new(Crack_Normal_Sampler_tex.outputs[0], mix_rgb_node5.inputs[1])
-					mat.node_tree.links.new(DetailMap_Normal_Sampler_tex.outputs[0], mix_rgb_node5.inputs[2])
-					mat.node_tree.links.new(mix_rgb_node5.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[22])
+					mat.node_tree.links.new(Crack_Normal_Sampler_tex.outputs['Color'], mix_rgb_node5.inputs['Color1'])
+					mat.node_tree.links.new(DetailMap_Normal_Sampler_tex.outputs['Color'], mix_rgb_node5.inputs['Color2'])
+					mat.node_tree.links.new(mix_rgb_node5.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Normal'])
 
 				elif shader_type == "DriveableSurface_RetroreflectivePaint":
 					ColourMap_Sampler_tex = mat.node_tree.nodes['ColourMap_Sampler']
@@ -3527,35 +3527,35 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 					mix_rgb_node4.blend_type = "MIX"
 					uv_map_node1.uv_map = "UVMap"
 					uv_map_node2.uv_map = "UV3Map"
-					mix_rgb_node2.inputs[2].default_value = OverlayB_Diffuse
-					mix_rgb_node3.inputs[2].default_value = Line_Diffuse
+					mix_rgb_node2.inputs['Color2'].default_value = OverlayB_Diffuse
+					mix_rgb_node3.inputs['Color2'].default_value = Line_Diffuse
 
 					mapping_node1.inputs[3].default_value[0] = DetailMapUvScale[0]*10.0
 					mapping_node1.inputs[3].default_value[1] = DetailMapUvScale[1]*100.0
 
-					mat.node_tree.links.new(uv_map_node1.outputs[0], mapping_node1.inputs[0])
-					mat.node_tree.links.new(mapping_node1.outputs[0], DetailMap_Diffuse_Sampler_tex.inputs[0])
+					mat.node_tree.links.new(uv_map_node1.outputs['UV'], mapping_node1.inputs[0])
+					mat.node_tree.links.new(mapping_node1.outputs['Vector'], DetailMap_Diffuse_Sampler_tex.inputs['Vector'])
 
-					mat.node_tree.links.new(OverlayA_Sampler_tex.outputs[0], mix_rgb_node1.inputs[0])
-					mat.node_tree.links.new(DetailMap_Diffuse_Sampler_tex.outputs[0], mix_rgb_node1.inputs[1])
-					mat.node_tree.links.new(ColourMap_Sampler_tex.outputs[0], mix_rgb_node1.inputs[2])
+					mat.node_tree.links.new(OverlayA_Sampler_tex.outputs['Color'], mix_rgb_node1.inputs['Fac'])
+					mat.node_tree.links.new(DetailMap_Diffuse_Sampler_tex.outputs['Color'], mix_rgb_node1.inputs['Color1'])
+					mat.node_tree.links.new(ColourMap_Sampler_tex.outputs['Color'], mix_rgb_node1.inputs['Color2'])
 
-					mat.node_tree.links.new(OverlayB_Sampler_tex.outputs[0], mix_rgb_node2.inputs[0])
-					mat.node_tree.links.new(mix_rgb_node1.outputs[0], mix_rgb_node2.inputs[1])
+					mat.node_tree.links.new(OverlayB_Sampler_tex.outputs['Color'], mix_rgb_node2.inputs['Fac'])
+					mat.node_tree.links.new(mix_rgb_node1.outputs['Color'], mix_rgb_node2.inputs['Color1'])
 
 
-					mat.node_tree.links.new(uv_map_node2.outputs[0], Line_Diffuse_Sampler_tex.inputs[0])
-					mat.node_tree.links.new(Line_Diffuse_Sampler_tex.outputs[0], mix_rgb_node3.inputs[1])
-					mat.node_tree.links.new(Line_Diffuse_Sampler_tex.outputs[1], mix_rgb_node3.inputs[0])
+					mat.node_tree.links.new(uv_map_node2.outputs['UV'], Line_Diffuse_Sampler_tex.inputs['Vector'])
+					mat.node_tree.links.new(Line_Diffuse_Sampler_tex.outputs['Color'], mix_rgb_node3.inputs['Color1'])
+					mat.node_tree.links.new(Line_Diffuse_Sampler_tex.outputs['Alpha'], mix_rgb_node3.inputs['Fac'])
 
-					mat.node_tree.links.new(Line_Diffuse_Sampler_tex.outputs[1], mix_rgb_node4.inputs[0])
-					mat.node_tree.links.new(mix_rgb_node2.outputs[0], mix_rgb_node4.inputs[1])
-					mat.node_tree.links.new(mix_rgb_node3.outputs[0], mix_rgb_node4.inputs[2])
+					mat.node_tree.links.new(Line_Diffuse_Sampler_tex.outputs['Alpha'], mix_rgb_node4.inputs['Fac'])
+					mat.node_tree.links.new(mix_rgb_node2.outputs['Color'], mix_rgb_node4.inputs['Color1'])
+					mat.node_tree.links.new(mix_rgb_node3.outputs['Color'], mix_rgb_node4.inputs['Color2'])
 
-					mat.node_tree.links.new(mix_rgb_node4.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[0])
+					mat.node_tree.links.new(mix_rgb_node4.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Base Color'])
 
-					mat.node_tree.nodes[mMaterialId].inputs[6].default_value = 0.2
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 1.0
+					mat.node_tree.nodes[mMaterialId].inputs['Metallic'].default_value = 0.2
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 1.0
 
 					#Normal
 					mix_rgb_node3 = mat.node_tree.nodes.new(type='ShaderNodeMixRGB')
@@ -3564,62 +3564,62 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 					normal_map_node2 = mat.node_tree.nodes.new(type='ShaderNodeNormalMap')
 					normal_map_node1.uv_map = "UVMap"
 					normal_map_node2.uv_map = "UVMap"
-					normal_map_node1.inputs[0].default_value = 0.48
-					normal_map_node2.inputs[0].default_value = 0.4
+					normal_map_node1.inputs['Strength'].default_value = 0.48
+					normal_map_node2.inputs['Strength'].default_value = 0.4
 
 					CrackMap_UScale_VScale_UOffset_VOffset = parameters_Data[parameters_Names.index("CrackMap_UScale_VScale_UOffset_VOffset")]
 
 					mapping_node2.inputs[3].default_value[0] = CrackMap_UScale_VScale_UOffset_VOffset[0]*1.0
 					mapping_node2.inputs[3].default_value[1] = CrackMap_UScale_VScale_UOffset_VOffset[1]*1.0
 
-					mat.node_tree.links.new(uv_map_node1.outputs[0], mapping_node2.inputs[0])
-					mat.node_tree.links.new(mapping_node1.outputs[0], DetailMap_Normal_Sampler_tex.inputs[0])
-					mat.node_tree.links.new(mapping_node2.outputs[0], Crack_Normal_Sampler_tex.inputs[0])
+					mat.node_tree.links.new(uv_map_node1.outputs['UV'], mapping_node2.inputs[0])
+					mat.node_tree.links.new(mapping_node1.outputs['Vector'], DetailMap_Normal_Sampler_tex.inputs['Vector'])
+					mat.node_tree.links.new(mapping_node2.outputs['Vector'], Crack_Normal_Sampler_tex.inputs['Vector'])
 
-					mat.node_tree.links.new(Crack_Normal_Sampler_tex.outputs[0], normal_map_node1.inputs[1])
-					mat.node_tree.links.new(DetailMap_Normal_Sampler_tex.outputs[0], normal_map_node2.inputs[1])
+					mat.node_tree.links.new(Crack_Normal_Sampler_tex.outputs['Color'], normal_map_node1.inputs['Color'])
+					mat.node_tree.links.new(DetailMap_Normal_Sampler_tex.outputs['Color'], normal_map_node2.inputs['Color'])
 
-					mat.node_tree.links.new(normal_map_node1.outputs[0], mix_rgb_node3.inputs[1])
-					mat.node_tree.links.new(normal_map_node2.outputs[0], mix_rgb_node3.inputs[2])
-					mat.node_tree.links.new(mix_rgb_node3.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[22])
+					mat.node_tree.links.new(normal_map_node1.outputs['Normal'], mix_rgb_node3.inputs['Color1'])
+					mat.node_tree.links.new(normal_map_node2.outputs['Normal'], mix_rgb_node3.inputs['Color2'])
+					mat.node_tree.links.new(mix_rgb_node3.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Normal'])
 
 				elif shader_type == "Fence_GreyScale_Singlesided":
 					DiffuseTextureSampler_tex = mat.node_tree.nodes['DiffuseTextureSampler']
 
-					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs[1], mat.node_tree.nodes[mMaterialId].inputs[21])
+					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs['Alpha'], mat.node_tree.nodes[mMaterialId].inputs['Alpha'])
 
 					mat.blend_method = 'BLEND'
 					mat.shadow_method = 'HASHED'
 
 					mat.use_backface_culling = True
 
-					mat.node_tree.nodes[mMaterialId].inputs[6].default_value = 1.0
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 0.6
+					mat.node_tree.nodes[mMaterialId].inputs['Metallic'].default_value = 1.0
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 0.6
 
 				elif shader_type == "Fence_GreyScale_Doublesided":
 					DiffuseTextureSampler_tex = mat.node_tree.nodes['DiffuseTextureSampler']
 
-					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs[1], mat.node_tree.nodes[mMaterialId].inputs[21])
+					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs['Alpha'], mat.node_tree.nodes[mMaterialId].inputs['Alpha'])
 
 					mat.blend_method = 'BLEND'
 					mat.shadow_method = 'HASHED'
 
 					mat.use_backface_culling = False
 
-					mat.node_tree.nodes[mMaterialId].inputs[6].default_value = 1.0
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 0.6
+					mat.node_tree.nodes[mMaterialId].inputs['Metallic'].default_value = 1.0
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 0.6
 
 				elif shader_type == "Flag_Opaque_Doublesided":
 					mat.use_backface_culling = False
 
-					mat.node_tree.nodes[mMaterialId].inputs[6].default_value = 0.0
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 0.3
+					mat.node_tree.nodes[mMaterialId].inputs['Metallic'].default_value = 0.0
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 0.3
 
 				elif shader_type == "Flag_VerticalBanner_Opaque_Doublesided":
 					mat.use_backface_culling = False
 
-					mat.node_tree.nodes[mMaterialId].inputs[6].default_value = 0.0
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 0.3
+					mat.node_tree.nodes[mMaterialId].inputs['Metallic'].default_value = 0.0
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 0.3
 
 				elif shader_type == "Foliage_1Bit_Normal_Spec_Doublesided":
 					DiffuseTextureSampler_tex = mat.node_tree.nodes['DiffuseTextureSampler']
@@ -3628,75 +3628,75 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 					normal_map_node1 = mat.node_tree.nodes.new(type='ShaderNodeNormalMap')
 
 					normal_map_node1.uv_map = "UVMap"
-					normal_map_node1.inputs[0].default_value = 0.4
+					normal_map_node1.inputs['Strength'].default_value = 0.4
 
-					mat.node_tree.links.new(NormalSpecTextureSampler_tex.outputs[0], normal_map_node1.inputs[1])
-					mat.node_tree.links.new(normal_map_node1.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[22])
+					mat.node_tree.links.new(NormalSpecTextureSampler_tex.outputs['Color'], normal_map_node1.inputs['Color'])
+					mat.node_tree.links.new(normal_map_node1.outputs['Normal'], mat.node_tree.nodes[mMaterialId].inputs['Normal'])
 
-					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs[1], mat.node_tree.nodes[mMaterialId].inputs[21])
+					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs['Alpha'], mat.node_tree.nodes[mMaterialId].inputs['Alpha'])
 
 					mat.blend_method = 'HASHED'
 					mat.shadow_method = 'HASHED'
 
 					mat.use_backface_culling = False
 
-					mat.node_tree.nodes[mMaterialId].inputs[6].default_value = 0.2
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 0.8
+					mat.node_tree.nodes[mMaterialId].inputs['Metallic'].default_value = 0.2
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 0.8
 
 				elif shader_type == "Foliage_1Bit_Doublesided":
 					DiffuseTextureSampler_tex = mat.node_tree.nodes['DiffuseTextureSampler']
 
-					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs[1], mat.node_tree.nodes[mMaterialId].inputs[21])
+					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs['Alpha'], mat.node_tree.nodes[mMaterialId].inputs['Alpha'])
 
 					mat.blend_method = 'HASHED'
 					mat.shadow_method = 'HASHED'
 
 					mat.use_backface_culling = False
 
-					mat.node_tree.nodes[mMaterialId].inputs[6].default_value = 0.2
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 0.8
+					mat.node_tree.nodes[mMaterialId].inputs['Metallic'].default_value = 0.2
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 0.8
 
 				elif shader_type == "Foliage_Proto":
 					DiffuseSampler_tex = mat.node_tree.nodes['DiffuseSampler']
 
-					mat.node_tree.links.new(DiffuseSampler_tex.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[0])
-					mat.node_tree.links.new(DiffuseSampler_tex.outputs[1], mat.node_tree.nodes[mMaterialId].inputs[21])
+					mat.node_tree.links.new(DiffuseSampler_tex.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Base Color'])
+					mat.node_tree.links.new(DiffuseSampler_tex.outputs['Alpha'], mat.node_tree.nodes[mMaterialId].inputs['Alpha'])
 
 					mat.blend_method = 'HASHED'
 					mat.shadow_method = 'HASHED'
 
 					mat.use_backface_culling = False
 
-					mat.node_tree.nodes[mMaterialId].inputs[6].default_value = 0.2
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 0.8
+					mat.node_tree.nodes[mMaterialId].inputs['Metallic'].default_value = 0.2
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 0.8
 
 				elif shader_type == "Foliage_Proto_Spec_Normal":
 					DiffuseSampler_tex = mat.node_tree.nodes['DiffuseSampler']
 
-					mat.node_tree.links.new(DiffuseSampler_tex.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[0])
-					mat.node_tree.links.new(DiffuseSampler_tex.outputs[1], mat.node_tree.nodes[mMaterialId].inputs[21])
+					mat.node_tree.links.new(DiffuseSampler_tex.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Base Color'])
+					mat.node_tree.links.new(DiffuseSampler_tex.outputs['Alpha'], mat.node_tree.nodes[mMaterialId].inputs['Alpha'])
 
 					mat.blend_method = 'HASHED'
 					mat.shadow_method = 'HASHED'
 
 					mat.use_backface_culling = False
 
-					mat.node_tree.nodes[mMaterialId].inputs[6].default_value = 0.2
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 0.8
+					mat.node_tree.nodes[mMaterialId].inputs['Metallic'].default_value = 0.2
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 0.8
 
 				elif shader_type == "Foliage_LargeSprites_Proto":
 					DiffuseSampler_tex = mat.node_tree.nodes['DiffuseSampler']
 
-					mat.node_tree.links.new(DiffuseSampler_tex.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[0])
-					mat.node_tree.links.new(DiffuseSampler_tex.outputs[1], mat.node_tree.nodes[mMaterialId].inputs[21])
+					mat.node_tree.links.new(DiffuseSampler_tex.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Base Color'])
+					mat.node_tree.links.new(DiffuseSampler_tex.outputs['Alpha'], mat.node_tree.nodes[mMaterialId].inputs['Alpha'])
 
 					mat.blend_method = 'HASHED'
 					mat.shadow_method = 'HASHED'
 
 					mat.use_backface_culling = False
 
-					mat.node_tree.nodes[mMaterialId].inputs[6].default_value = 0.2
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 0.8
+					mat.node_tree.nodes[mMaterialId].inputs['Metallic'].default_value = 0.2
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 0.8
 
 				elif shader_type == "Foliage_LargeSprites_Proto_Spec_Normal":
 					DiffuseSampler_tex = mat.node_tree.nodes['DiffuseSampler']
@@ -3705,31 +3705,31 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 					normal_map_node1 = mat.node_tree.nodes.new(type='ShaderNodeNormalMap')
 
 					normal_map_node1.uv_map = "UVMap"
-					normal_map_node1.inputs[0].default_value = 0.4
+					normal_map_node1.inputs['Strength'].default_value = 0.4
 
-					mat.node_tree.links.new(NormalSpecTextureSampler_tex.outputs[0], normal_map_node1.inputs[1])
-					mat.node_tree.links.new(normal_map_node1.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[22])
+					mat.node_tree.links.new(NormalSpecTextureSampler_tex.outputs['Color'], normal_map_node1.inputs['Color'])
+					mat.node_tree.links.new(normal_map_node1.outputs['Normal'], mat.node_tree.nodes[mMaterialId].inputs['Normal'])
 
-					mat.node_tree.links.new(DiffuseSampler_tex.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[0])
-					mat.node_tree.links.new(DiffuseSampler_tex.outputs[1], mat.node_tree.nodes[mMaterialId].inputs[21])
+					mat.node_tree.links.new(DiffuseSampler_tex.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Base Color'])
+					mat.node_tree.links.new(DiffuseSampler_tex.outputs['Alpha'], mat.node_tree.nodes[mMaterialId].inputs['Alpha'])
 
 					mat.blend_method = 'HASHED'
 					mat.shadow_method = 'HASHED'
 
 					mat.use_backface_culling = False
 
-					mat.node_tree.nodes[mMaterialId].inputs[6].default_value = 0.2
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 0.8
+					mat.node_tree.nodes[mMaterialId].inputs['Metallic'].default_value = 0.2
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 0.8
 
 				elif shader_type == "HelicopterRotor_GreyScale_Doublesided":
-					mat.node_tree.nodes[mMaterialId].inputs[6].default_value = 0.6
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 0.2
+					mat.node_tree.nodes[mMaterialId].inputs['Metallic'].default_value = 0.6
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 0.2
 
 					mat.use_backface_culling = False
 
 				elif shader_type == "Illuminance_Diffuse_Opaque_Singlesided":
 					mat_tex = mat.node_tree.nodes['IllumTextureSampler']
-					mat.node_tree.links.new(mat_tex.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[19])
+					mat.node_tree.links.new(mat_tex.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Emission'])
 
 				elif shader_type == "Road_Proto":
 					detailDiffuseMapSampler_tex = mat.node_tree.nodes['detailDiffuseMapSampler']
@@ -3752,38 +3752,38 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 					mapping_node1.inputs[3].default_value[0] = detailMultiplierU[0]*1.0
 					mapping_node1.inputs[3].default_value[1] = detailMultiplierV[0]*1.0
 
-					mat.node_tree.links.new(uv_map_node1.outputs[0], mapping_node1.inputs[0])
-					mat.node_tree.links.new(mapping_node1.outputs[0], detailDiffuseMapSampler_tex.inputs[0])
-					mat.node_tree.links.new(mapping_node1.outputs[0], detailNormalMapSampler_tex.inputs[0])
+					mat.node_tree.links.new(uv_map_node1.outputs['UV'], mapping_node1.inputs[0])
+					mat.node_tree.links.new(mapping_node1.outputs['Vector'], detailDiffuseMapSampler_tex.inputs['Vector'])
+					mat.node_tree.links.new(mapping_node1.outputs['Vector'], detailNormalMapSampler_tex.inputs['Vector'])
 
-					mat.node_tree.links.new(detailDiffuseMapSampler_tex.outputs[0], mix_rgb_node1.inputs[1])
-					mat.node_tree.links.new(detailDiffuseMapSampler_tex.outputs[1], mix_rgb_node1.inputs[0])
-					mat.node_tree.links.new(dirtMapSampler_tex.outputs[0], mix_rgb_node1.inputs[2])
-					mat.node_tree.links.new(mix_rgb_node1.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[0])
+					mat.node_tree.links.new(detailDiffuseMapSampler_tex.outputs['Color'], mix_rgb_node1.inputs['Color1'])
+					mat.node_tree.links.new(detailDiffuseMapSampler_tex.outputs['Alpha'], mix_rgb_node1.inputs['Fac'])
+					mat.node_tree.links.new(dirtMapSampler_tex.outputs['Color'], mix_rgb_node1.inputs['Color2'])
+					mat.node_tree.links.new(mix_rgb_node1.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Base Color'])
 
-					mat.node_tree.links.new(detailNormalMapSampler_tex.outputs[0], mix_rgb_node2.inputs[1])
-					mat.node_tree.links.new(crackNormalMapSampler_tex.outputs[0], mix_rgb_node2.inputs[2])
+					mat.node_tree.links.new(detailNormalMapSampler_tex.outputs['Color'], mix_rgb_node2.inputs['Color1'])
+					mat.node_tree.links.new(crackNormalMapSampler_tex.outputs['Color'], mix_rgb_node2.inputs['Color2'])
 
-					mat.node_tree.links.new(detailNormalMapSampler_tex.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[22])
+					mat.node_tree.links.new(detailNormalMapSampler_tex.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Normal'])
 
-					mat.node_tree.nodes[mMaterialId].inputs[6].default_value = 0.1
-					mat.node_tree.nodes[mMaterialId].inputs[6].default_value = 0.2
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 1.0
+					mat.node_tree.nodes[mMaterialId].inputs['Metallic'].default_value = 0.1
+					mat.node_tree.nodes[mMaterialId].inputs['Metallic'].default_value = 0.2
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 1.0
 
 				elif shader_type == "Sign_RetroReflective":
 					DiffuseTextureSampler_tex = mat.node_tree.nodes['DiffuseTextureSampler']
 
 					RetroreflectiveThreshold = parameters_Data[parameters_Names.index("RetroreflectiveThreshold")]
 
-					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[19])
-					mat.node_tree.nodes[mMaterialId].inputs[20].default_value = RetroreflectiveThreshold[0]*10.0
+					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Emission'])
+					mat.node_tree.nodes[mMaterialId].inputs['Emission Strength'].default_value = RetroreflectiveThreshold[0]*10.0
 
 					mat.use_backface_culling = True
 
 				elif shader_type == "Skin_World_Diffuse_Specular_Overlay_Singlesided":
 					DiffuseTextureSampler_tex = mat.node_tree.nodes['DiffuseTextureSampler']
 
-					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs[1], mat.node_tree.nodes[mMaterialId].inputs[21])
+					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs['Alpha'], mat.node_tree.nodes[mMaterialId].inputs['Alpha'])
 
 					mat.blend_method = 'HASHED'
 					mat.shadow_method = 'HASHED'
@@ -3793,7 +3793,7 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 				elif shader_type == "Tree_Translucent_1Bit_Doublesided":
 					DiffuseTextureSampler_tex = mat.node_tree.nodes['DiffuseTextureSampler']
 
-					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs[1], mat.node_tree.nodes[mMaterialId].inputs[21])
+					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs['Alpha'], mat.node_tree.nodes[mMaterialId].inputs['Alpha'])
 
 					mat.blend_method = 'BLEND'
 					mat.shadow_method = 'HASHED'
@@ -3803,15 +3803,15 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 				elif shader_type == "Waterfall_Proto":
 					DiffuseTextureSampler_tex = mat.node_tree.nodes['DiffuseTextureSampler']
 
-					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs[1], mat.node_tree.nodes[mMaterialId].inputs[21])
+					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs['Alpha'], mat.node_tree.nodes[mMaterialId].inputs['Alpha'])
 
 					mat.blend_method = 'BLEND'
 					mat.shadow_method = 'HASHED'
 
 					mat.show_transparent_back = True
 
-					mat.node_tree.nodes[mMaterialId].inputs[6].default_value = 0.0
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 0.0
+					mat.node_tree.nodes[mMaterialId].inputs['Metallic'].default_value = 0.0
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 0.0
 
 				elif shader_type == "Water_Proto":
 					DiffuseAndCausticsTextureSampler_tex = mat.node_tree.nodes['DiffuseAndCausticsTextureSampler']
@@ -3843,11 +3843,11 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 					uv_map_node3.uv_map = "UVMap"
 					uv_map_node4.uv_map = "UV3Map"
 					normal_map_node1.uv_map = "UVMap"
-					normal_map_node1.inputs[0].default_value = 1.0
+					normal_map_node1.inputs['Strength'].default_value = 1.0
 					mix_rgb_node1.blend_type = "OVERLAY"
 					mix_rgb_node2.blend_type = "OVERLAY"
 					mix_rgb_node3.blend_type = "OVERLAY"
-					mix_rgb_node1.inputs[1].default_value = (0.2, 0.4, 0.8, 1.0)
+					mix_rgb_node1.inputs['Color1'].default_value = (0.2, 0.4, 0.8, 1.0)
 
 					mapping_node1.inputs[3].default_value[0] = causticTile[0]*1.0
 					mapping_node1.inputs[3].default_value[1] = causticTile[1]*1.0
@@ -3858,38 +3858,38 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 					mapping_node3.inputs[3].default_value[0] = normalMapTile1[0]*1.0
 					mapping_node3.inputs[3].default_value[1] = normalMapTile1[1]*1.0
 
-					mat.node_tree.links.new(uv_map_node1.outputs[0], mapping_node1.inputs[0])
-					mat.node_tree.links.new(mapping_node1.outputs[0], DiffuseAndCausticsTextureSampler_tex.inputs[0])
+					mat.node_tree.links.new(uv_map_node1.outputs['UV'], mapping_node1.inputs[0])
+					mat.node_tree.links.new(mapping_node1.outputs['Vector'], DiffuseAndCausticsTextureSampler_tex.inputs['Vector'])
 
-					mat.node_tree.links.new(uv_map_node2.outputs[0], mapping_node2.inputs[0])
-					mat.node_tree.links.new(mapping_node2.outputs[0], SurfTextureSampler_tex.inputs[0])
-					mat.node_tree.links.new(mapping_node2.outputs[0], SurfNormalTextureSampler_tex.inputs[0])
+					mat.node_tree.links.new(uv_map_node2.outputs['UV'], mapping_node2.inputs[0])
+					mat.node_tree.links.new(mapping_node2.outputs['Vector'], SurfTextureSampler_tex.inputs['Vector'])
+					mat.node_tree.links.new(mapping_node2.outputs['Vector'], SurfNormalTextureSampler_tex.inputs['Vector'])
 
-					mat.node_tree.links.new(uv_map_node3.outputs[0], mapping_node3.inputs[0])
-					mat.node_tree.links.new(mapping_node3.outputs[0], NormalTextureSampler_tex.inputs[0])
+					mat.node_tree.links.new(uv_map_node3.outputs['UV'], mapping_node3.inputs[0])
+					mat.node_tree.links.new(mapping_node3.outputs['Vector'], NormalTextureSampler_tex.inputs['Vector'])
 
-					mat.node_tree.links.new(uv_map_node4.outputs[0], mapping_node4.inputs[0])
-					mat.node_tree.links.new(mapping_node4.outputs[0], RiverFloorTextureSampler_tex.inputs[0])
+					mat.node_tree.links.new(uv_map_node4.outputs['UV'], mapping_node4.inputs[0])
+					mat.node_tree.links.new(mapping_node4.outputs['Vector'], RiverFloorTextureSampler_tex.inputs['Vector'])
 
-					mat.node_tree.links.new(DiffuseAndCausticsTextureSampler_tex.outputs[1], mix_rgb_node1.inputs[0])
-					mat.node_tree.links.new(DiffuseAndCausticsTextureSampler_tex.outputs[0], mix_rgb_node1.inputs[2])
+					mat.node_tree.links.new(DiffuseAndCausticsTextureSampler_tex.outputs['Alpha'], mix_rgb_node1.inputs['Fac'])
+					mat.node_tree.links.new(DiffuseAndCausticsTextureSampler_tex.outputs['Color'], mix_rgb_node1.inputs['Color2'])
 
-					mat.node_tree.links.new(SurfMaskTextureSampler_tex.outputs[0], mix_rgb_node2.inputs[0])
-					mat.node_tree.links.new(mix_rgb_node1.outputs[0], mix_rgb_node2.inputs[1])
-					mat.node_tree.links.new(SurfTextureSampler_tex.outputs[0], mix_rgb_node2.inputs[2])
+					mat.node_tree.links.new(SurfMaskTextureSampler_tex.outputs['Color'], mix_rgb_node2.inputs['Fac'])
+					mat.node_tree.links.new(mix_rgb_node1.outputs['Color'], mix_rgb_node2.inputs['Color1'])
+					mat.node_tree.links.new(SurfTextureSampler_tex.outputs['Color'], mix_rgb_node2.inputs['Color2'])
 
-					mat.node_tree.links.new(mix_rgb_node2.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[0])
+					mat.node_tree.links.new(mix_rgb_node2.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Base Color'])
 
-					mat.node_tree.links.new(SurfMaskTextureSampler_tex.outputs[0], mix_rgb_node3.inputs[0])
-					mat.node_tree.links.new(NormalTextureSampler_tex.outputs[0], mix_rgb_node3.inputs[1])
-					mat.node_tree.links.new(SurfNormalTextureSampler_tex.outputs[0], mix_rgb_node3.inputs[2])
-					mat.node_tree.links.new(mix_rgb_node3.outputs[0], normal_map_node1.inputs[1])
-					mat.node_tree.links.new(normal_map_node1.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[22])
+					mat.node_tree.links.new(SurfMaskTextureSampler_tex.outputs['Color'], mix_rgb_node3.inputs['Fac'])
+					mat.node_tree.links.new(NormalTextureSampler_tex.outputs['Color'], mix_rgb_node3.inputs['Color1'])
+					mat.node_tree.links.new(SurfNormalTextureSampler_tex.outputs['Color'], mix_rgb_node3.inputs['Color2'])
+					mat.node_tree.links.new(mix_rgb_node3.outputs['Color'], normal_map_node1.inputs['Color'])
+					mat.node_tree.links.new(normal_map_node1.outputs['Normal'], mat.node_tree.nodes[mMaterialId].inputs['Normal'])
 
-					mat.node_tree.nodes[mMaterialId].inputs[0].default_value = (0.5, 0.6, 0.8, 1.0)
-					mat.node_tree.nodes[mMaterialId].inputs[6].default_value = 0.05
-					mat.node_tree.nodes[mMaterialId].inputs[7].default_value = 0.2
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 0.2
+					mat.node_tree.nodes[mMaterialId].inputs['Base Color'].default_value = (0.5, 0.6, 0.8, 1.0)
+					mat.node_tree.nodes[mMaterialId].inputs['Metallic'].default_value = 0.05
+					mat.node_tree.nodes[mMaterialId].inputs['Specular'].default_value = 0.2
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 0.2
 
 				elif shader_type == "Water_Proto_Cheap":
 					NormalTextureSampler_tex = mat.node_tree.nodes['NormalTextureSampler']
@@ -3902,24 +3902,24 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 
 					uv_map_node1.uv_map = "UVMap"
 					normal_map_node1.uv_map = "UVMap"
-					normal_map_node1.inputs[0].default_value = 1.0
+					normal_map_node1.inputs['Strength'].default_value = 1.0
 
 					mapping_node1.inputs[3].default_value[0] = normalMapTile1[0]*1.0
 					mapping_node1.inputs[3].default_value[1] = normalMapTile1[1]*1.0
 
-					mat.node_tree.links.new(uv_map_node1.outputs[0], mapping_node1.inputs[0])
-					mat.node_tree.links.new(mapping_node1.outputs[0], NormalTextureSampler_tex.inputs[0])
-					mat.node_tree.links.new(NormalTextureSampler_tex.outputs[0], normal_map_node1.inputs[1])
-					mat.node_tree.links.new(normal_map_node1.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[22])
+					mat.node_tree.links.new(uv_map_node1.outputs['UV'], mapping_node1.inputs[0])
+					mat.node_tree.links.new(mapping_node1.outputs['Vector'], NormalTextureSampler_tex.inputs['Vector'])
+					mat.node_tree.links.new(NormalTextureSampler_tex.outputs['Color'], normal_map_node1.inputs['Color'])
+					mat.node_tree.links.new(normal_map_node1.outputs['Normal'], mat.node_tree.nodes[mMaterialId].inputs['Normal'])
 
-					mat.node_tree.nodes[mMaterialId].inputs[0].default_value = (0.22, 0.43, 0.74, 1.0)
-					mat.node_tree.nodes[mMaterialId].inputs[6].default_value = 0.05
-					mat.node_tree.nodes[mMaterialId].inputs[7].default_value = 0.2
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 0.2
+					mat.node_tree.nodes[mMaterialId].inputs['Base Color'].default_value = (0.22, 0.43, 0.74, 1.0)
+					mat.node_tree.nodes[mMaterialId].inputs['Metallic'].default_value = 0.05
+					mat.node_tree.nodes[mMaterialId].inputs['Specular'].default_value = 0.2
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 0.2
 
 				elif shader_type == "World_CopStudio_Specular_Reflective_Singlesided":
-					mat.node_tree.nodes[mMaterialId].inputs[6].default_value = 1.0
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 0.15
+					mat.node_tree.nodes[mMaterialId].inputs['Metallic'].default_value = 1.0
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 0.15
 
 					mat.use_backface_culling = True
 
@@ -3935,17 +3935,17 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 
 					uv_map_node1.uv_map = "UV2Map"
 					mix_rgb_node1.blend_type = "OVERLAY"
-					mix_rgb_node1.inputs[2].default_value = DirtTint
+					mix_rgb_node1.inputs['Color2'].default_value = DirtTint
 
-					mat.node_tree.links.new(uv_map_node1.outputs[0], OverlayTextureSampler_tex.inputs[0])
+					mat.node_tree.links.new(uv_map_node1.outputs['UV'], OverlayTextureSampler_tex.inputs['Vector'])
 
-					mat.node_tree.links.new(OverlayTextureSampler_tex.outputs[0], mix_rgb_node1.inputs[0])
-					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs[0], mix_rgb_node1.inputs[1])
-					mat.node_tree.links.new(mix_rgb_node1.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[0])
+					mat.node_tree.links.new(OverlayTextureSampler_tex.outputs['Color'], mix_rgb_node1.inputs['Fac'])
+					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs['Color'], mix_rgb_node1.inputs['Color1'])
+					mat.node_tree.links.new(mix_rgb_node1.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Base Color'])
 
-					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs[1], mat.node_tree.nodes[mMaterialId].inputs[21])
+					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs['Alpha'], mat.node_tree.nodes[mMaterialId].inputs['Alpha'])
 
-					mat.node_tree.links.new(NormalTextureSampler_tex.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[22])
+					mat.node_tree.links.new(NormalTextureSampler_tex.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Normal'])
 
 					mat.blend_method = 'HASHED'
 					mat.shadow_method = 'HASHED'
@@ -3964,19 +3964,19 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 
 					# uv_map_node1.uv_map = "UV2Map"
 					# mix_rgb_node1.blend_type = "OVERLAY"
-					# mix_rgb_node1.inputs[2].default_value = DirtTint
+					# mix_rgb_node1.inputs['Color2'].default_value = DirtTint
 
-					#mat.node_tree.links.new(uv_map_node1.outputs[0], OverlayTextureSampler_tex.inputs[0])
+					#mat.node_tree.links.new(uv_map_node1.outputs['UV'], OverlayTextureSampler_tex.inputs['Vector'])
 
-					#mat.node_tree.links.new(OverlayTextureSampler_tex.outputs[0], mix_rgb_node1.inputs[0])
-					#mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs[0], mix_rgb_node1.inputs[1])
-					#mat.node_tree.links.new(mix_rgb_node1.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[0])
+					#mat.node_tree.links.new(OverlayTextureSampler_tex.outputs['Color'], mix_rgb_node1.inputs['Fac'])
+					#mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs['Color'], mix_rgb_node1.inputs['Color1'])
+					#mat.node_tree.links.new(mix_rgb_node1.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Base Color'])
 
-					mat.node_tree.links.new(NormalTextureSampler_tex.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[22])
+					mat.node_tree.links.new(NormalTextureSampler_tex.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Normal'])
 
-					mat.node_tree.nodes[mMaterialId].inputs[6].default_value = 0.0
-					mat.node_tree.nodes[mMaterialId].inputs[7].default_value = 0.25
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 0.75
+					mat.node_tree.nodes[mMaterialId].inputs['Metallic'].default_value = 0.0
+					mat.node_tree.nodes[mMaterialId].inputs['Specular'].default_value = 0.25
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 0.75
 
 					mat.use_backface_culling = True
 
@@ -3992,76 +3992,76 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 
 					uv_map_node1.uv_map = "UV2Map"
 					mix_rgb_node1.blend_type = "OVERLAY"
-					mix_rgb_node1.inputs[2].default_value = DirtTint
+					mix_rgb_node1.inputs['Color2'].default_value = DirtTint
 
-					mat.node_tree.links.new(uv_map_node1.outputs[0], OverlayTextureSampler_tex.inputs[0])
+					mat.node_tree.links.new(uv_map_node1.outputs['UV'], OverlayTextureSampler_tex.inputs['Vector'])
 
-					mat.node_tree.links.new(OverlayTextureSampler_tex.outputs[0], mix_rgb_node1.inputs[0])
-					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs[0], mix_rgb_node1.inputs[1])
-					mat.node_tree.links.new(mix_rgb_node1.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[0])
+					mat.node_tree.links.new(OverlayTextureSampler_tex.outputs['Color'], mix_rgb_node1.inputs['Fac'])
+					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs['Color'], mix_rgb_node1.inputs['Color1'])
+					mat.node_tree.links.new(mix_rgb_node1.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Base Color'])
 
-					mat.node_tree.links.new(NormalTextureSampler_tex.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[22])
+					mat.node_tree.links.new(NormalTextureSampler_tex.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Normal'])
 
-					mat.node_tree.nodes[mMaterialId].inputs[6].default_value = 0.0
-					mat.node_tree.nodes[mMaterialId].inputs[7].default_value = 0.25
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 0.75
+					mat.node_tree.nodes[mMaterialId].inputs['Metallic'].default_value = 0.0
+					mat.node_tree.nodes[mMaterialId].inputs['Specular'].default_value = 0.25
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 0.75
 
 					mat.use_backface_culling = True
 
 				elif shader_type == "World_Diffuse_Normal_SpecMap_Overlay_Singlesided":
-					mat.node_tree.nodes[mMaterialId].inputs[6].default_value = 0.5
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 0.4
+					mat.node_tree.nodes[mMaterialId].inputs['Metallic'].default_value = 0.5
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 0.4
 
 					mat.use_backface_culling = True
 
 				elif shader_type == "World_Diffuse_Normal_SpecMap":
-					mat.node_tree.nodes[mMaterialId].inputs[6].default_value = 0.0
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 1.0
+					mat.node_tree.nodes[mMaterialId].inputs['Metallic'].default_value = 0.0
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 1.0
 
 				elif shader_type == "World_Diffuse_Reflective_Overlay_Lightmap_Singlesided":
-					mat.node_tree.nodes[mMaterialId].inputs[6].default_value = 0.3
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 1.0
+					mat.node_tree.nodes[mMaterialId].inputs['Metallic'].default_value = 0.3
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 1.0
 
 					mat.use_backface_culling = True
 
 				elif shader_type == "World_Diffuse_Specular_Singlesided":
-					mat.node_tree.nodes[mMaterialId].inputs[6].default_value = 0.1
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 0.4
+					mat.node_tree.nodes[mMaterialId].inputs['Metallic'].default_value = 0.1
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 0.4
 
 					mat.use_backface_culling = True
 
 				elif shader_type == "World_Diffuse_Specular_1Bit_Lightmap_Doublesided":
 					DiffuseTextureSampler_tex = mat.node_tree.nodes['DiffuseTextureSampler']
 
-					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs[1], mat.node_tree.nodes[mMaterialId].inputs[21])
+					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs['Alpha'], mat.node_tree.nodes[mMaterialId].inputs['Alpha'])
 
 					mat.blend_method = 'HASHED'
 					mat.shadow_method = 'HASHED'
 
 					mat.use_backface_culling = False
 
-					mat.node_tree.nodes[mMaterialId].inputs[6].default_value = 0.2
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 0.8
+					mat.node_tree.nodes[mMaterialId].inputs['Metallic'].default_value = 0.2
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 0.8
 
 				elif shader_type == "World_Diffuse_Specular_1Bit_LightmapNight_Doublesided":
 					DiffuseTextureSampler_tex = mat.node_tree.nodes['DiffuseTextureSampler']
 
-					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs[1], mat.node_tree.nodes[mMaterialId].inputs[21])
+					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs['Alpha'], mat.node_tree.nodes[mMaterialId].inputs['Alpha'])
 
 					mat.blend_method = 'HASHED'
 					mat.shadow_method = 'HASHED'
 
 					mat.use_backface_culling = False
 
-					mat.node_tree.nodes[mMaterialId].inputs[6].default_value = 0.2
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 0.8
+					mat.node_tree.nodes[mMaterialId].inputs['Metallic'].default_value = 0.2
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 0.8
 
 				elif shader_type == "World_Diffuse_Specular_FlashingNeon_Singlesided":
 					DiffuseTextureSampler_tex = mat.node_tree.nodes['DiffuseTextureSampler']
 
-					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[19])
+					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Emission'])
 
-					mat.node_tree.nodes[mMaterialId].inputs[20].default_value = 5.0
+					mat.node_tree.nodes[mMaterialId].inputs['Emission Strength'].default_value = 5.0
 
 					mat.use_backface_culling = True
 
@@ -4072,32 +4072,32 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 
 					mix_rgb_node1 = mat.node_tree.nodes.new(type='ShaderNodeMixRGB')
 
-					mix_rgb_node1.inputs[1].default_value = window_Tint
+					mix_rgb_node1.inputs['Color1'].default_value = window_Tint
 
-					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs[1], mix_rgb_node1.inputs[0])
-					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs[0], mix_rgb_node1.inputs[2])
-					mat.node_tree.links.new(mix_rgb_node1.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[0])
+					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs['Alpha'], mix_rgb_node1.inputs['Fac'])
+					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs['Color'], mix_rgb_node1.inputs['Color2'])
+					mat.node_tree.links.new(mix_rgb_node1.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Base Color'])
 
-					mat.node_tree.nodes[mMaterialId].inputs[6].default_value = 0.6
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 0.2
+					mat.node_tree.nodes[mMaterialId].inputs['Metallic'].default_value = 0.6
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 0.2
 
 					mat.use_backface_culling = True
 
 				elif shader_type == "World_Diffuse_Specular_Normal_Overlay_Lightmap_Singlesided":
-					mat.node_tree.nodes[mMaterialId].inputs[6].default_value = 0.0
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 1.0
+					mat.node_tree.nodes[mMaterialId].inputs['Metallic'].default_value = 0.0
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 1.0
 
 					mat.use_backface_culling = True
 
 				elif shader_type == "World_Diffuse_Specular_Overlay_Lightmap_Singlesided":
-					mat.node_tree.nodes[mMaterialId].inputs[6].default_value = 0.0
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 1.0
+					mat.node_tree.nodes[mMaterialId].inputs['Metallic'].default_value = 0.0
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 1.0
 
 					mat.use_backface_culling = True
 
 				elif shader_type == "World_Diffuse_Specular_Overlay_LightmapNight_Singlesided":
-					mat.node_tree.nodes[mMaterialId].inputs[6].default_value = 0.0
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 1.0
+					mat.node_tree.nodes[mMaterialId].inputs['Metallic'].default_value = 0.0
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 1.0
 
 					mat.use_backface_culling = True
 
@@ -4108,14 +4108,14 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 
 					mix_rgb_node1 = mat.node_tree.nodes.new(type='ShaderNodeMixRGB')
 
-					mix_rgb_node1.inputs[2].default_value = window_Tint
+					mix_rgb_node1.inputs['Color2'].default_value = window_Tint
 
-					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs[1], mix_rgb_node1.inputs[0])
-					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs[0], mix_rgb_node1.inputs[1])
-					mat.node_tree.links.new(mix_rgb_node1.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[0])
+					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs['Alpha'], mix_rgb_node1.inputs['Fac'])
+					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs['Color'], mix_rgb_node1.inputs['Color1'])
+					mat.node_tree.links.new(mix_rgb_node1.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Base Color'])
 
-					mat.node_tree.nodes[mMaterialId].inputs[6].default_value = 0.6
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 0.2
+					mat.node_tree.nodes[mMaterialId].inputs['Metallic'].default_value = 0.6
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 0.2
 
 					mat.use_backface_culling = True
 
@@ -4128,33 +4128,33 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 
 					uv_map_node1.uv_map = "UV3Map"
 
-					mat.node_tree.links.new(uv_map_node1.outputs[0], WindowTintSampler_tex.inputs[0])
+					mat.node_tree.links.new(uv_map_node1.outputs['UV'], WindowTintSampler_tex.inputs['Vector'])
 
-					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs[1], mix_rgb_node1.inputs[0])
-					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs[0], mix_rgb_node1.inputs[2])
-					mat.node_tree.links.new(WindowTintSampler_tex.outputs[0], mix_rgb_node1.inputs[1])
-					mat.node_tree.links.new(mix_rgb_node1.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[0])
+					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs['Alpha'], mix_rgb_node1.inputs['Fac'])
+					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs['Color'], mix_rgb_node1.inputs['Color2'])
+					mat.node_tree.links.new(WindowTintSampler_tex.outputs['Color'], mix_rgb_node1.inputs['Color1'])
+					mat.node_tree.links.new(mix_rgb_node1.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Base Color'])
 
-					mat.node_tree.nodes[mMaterialId].inputs[6].default_value = 0.6
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 0.2
+					mat.node_tree.nodes[mMaterialId].inputs['Metallic'].default_value = 0.6
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 0.2
 
 					mat.use_backface_culling = True
 
 				elif shader_type == "World_Diffuse_Specular_Overlay_Singlesided":
 					DiffuseTextureSampler_tex = mat.node_tree.nodes['DiffuseTextureSampler']
 
-					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs[1], mat.node_tree.nodes[mMaterialId].inputs[21])
+					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs['Alpha'], mat.node_tree.nodes[mMaterialId].inputs['Alpha'])
 
 					mat.blend_method = 'HASHED'
 					mat.shadow_method = 'HASHED'
 
 					mat.use_backface_culling = True
 
-					mat.node_tree.nodes[mMaterialId].inputs[7].default_value = 0.2
+					mat.node_tree.nodes[mMaterialId].inputs['Specular'].default_value = 0.2
 
 				elif shader_type == "World_Diffuse_Specular_Reflective_Singlesided":
-					mat.node_tree.nodes[mMaterialId].inputs[6].default_value = 0.6
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 0.5
+					mat.node_tree.nodes[mMaterialId].inputs['Metallic'].default_value = 0.6
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 0.5
 
 					mat.use_backface_culling = True
 
@@ -4168,14 +4168,14 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 					mix_rgb_node1 = mat.node_tree.nodes.new(type='ShaderNodeMixRGB')
 
 					mix_rgb_node1.blend_type = "OVERLAY"
-					mix_rgb_node1.inputs[1].default_value = materialDiffuse
+					mix_rgb_node1.inputs['Color1'].default_value = materialDiffuse
 
-					mat.node_tree.links.new(OverlayTextureSampler_tex.outputs[0], mix_rgb_node1.inputs[0])
-					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs[0], mix_rgb_node1.inputs[1])
-					mat.node_tree.links.new(mix_rgb_node1.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[0])
-					mat.node_tree.links.new(IlluminanceTextureSampler_tex.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[19])
+					mat.node_tree.links.new(OverlayTextureSampler_tex.outputs['Color'], mix_rgb_node1.inputs['Fac'])
+					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs['Color'], mix_rgb_node1.inputs['Color1'])
+					mat.node_tree.links.new(mix_rgb_node1.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Base Color'])
+					mat.node_tree.links.new(IlluminanceTextureSampler_tex.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Emission'])
 
-					mat.node_tree.nodes[mMaterialId].inputs[20].default_value = 1.0
+					mat.node_tree.nodes[mMaterialId].inputs['Emission Strength'].default_value = 1.0
 
 					mat.blend_method = 'HASHED'
 					mat.shadow_method = 'HASHED'
@@ -4186,10 +4186,10 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 					DiffuseTextureSampler_tex = mat.node_tree.nodes['DiffuseTextureSampler']
 					IlluminanceTextureSampler_tex = mat.node_tree.nodes['IlluminanceTextureSampler']
 
-					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs[1], mat.node_tree.nodes[mMaterialId].inputs[21])
-					mat.node_tree.links.new(IlluminanceTextureSampler_tex.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[19])
+					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs['Alpha'], mat.node_tree.nodes[mMaterialId].inputs['Alpha'])
+					mat.node_tree.links.new(IlluminanceTextureSampler_tex.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Emission'])
 
-					mat.node_tree.nodes[mMaterialId].inputs[20].default_value = 0.6
+					mat.node_tree.nodes[mMaterialId].inputs['Emission Strength'].default_value = 0.6
 
 					mat.blend_method = 'HASHED'
 					mat.shadow_method = 'HASHED'
@@ -4207,12 +4207,12 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 					mix_rgb_node1.blend_type = "OVERLAY"
 
 					uv_map_node1.uv_map = "UV2Map"
-					mat.node_tree.links.new(uv_map_node1.outputs[0], OverlayTextureSampler_tex.inputs[0])
+					mat.node_tree.links.new(uv_map_node1.outputs['UV'], OverlayTextureSampler_tex.inputs['Vector'])
 
-					mat.node_tree.links.new(OverlayTextureSampler_tex.outputs[0], mix_rgb_node1.inputs[0])
-					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs[0], mix_rgb_node1.inputs[1])
-					mat.node_tree.links.new(Diffuse2TextureSampler_tex.outputs[0], mix_rgb_node1.inputs[2])
-					mat.node_tree.links.new(mix_rgb_node1.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[0])
+					mat.node_tree.links.new(OverlayTextureSampler_tex.outputs['Color'], mix_rgb_node1.inputs['Fac'])
+					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs['Color'], mix_rgb_node1.inputs['Color1'])
+					mat.node_tree.links.new(Diffuse2TextureSampler_tex.outputs['Color'], mix_rgb_node1.inputs['Color2'])
+					mat.node_tree.links.new(mix_rgb_node1.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Base Color'])
 
 					mat.use_backface_culling = True
 
@@ -4226,16 +4226,16 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 					mix_rgb_node1.blend_type = "MIX"
 
 					uv_map_node1.uv_map = "UVMap"
-					mat.node_tree.links.new(uv_map_node1.outputs[0], Diffuse2TextureSampler_tex.inputs[0])
+					mat.node_tree.links.new(uv_map_node1.outputs['UV'], Diffuse2TextureSampler_tex.inputs['Vector'])
 
-					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs[0], mix_rgb_node1.inputs[1])
-					mat.node_tree.links.new(Diffuse2TextureSampler_tex.outputs[0], mix_rgb_node1.inputs[2])
-					mat.node_tree.links.new(mix_rgb_node1.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[0])
+					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs['Color'], mix_rgb_node1.inputs['Color1'])
+					mat.node_tree.links.new(Diffuse2TextureSampler_tex.outputs['Color'], mix_rgb_node1.inputs['Color2'])
+					mat.node_tree.links.new(mix_rgb_node1.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Base Color'])
 
 					mat.use_backface_culling = True
 
-					mat.node_tree.nodes[mMaterialId].inputs[6].default_value = 0.2
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 0.4
+					mat.node_tree.nodes[mMaterialId].inputs['Metallic'].default_value = 0.2
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 0.4
 
 				elif shader_type == "World_DiffuseBlend_Normal_Overlay_LightmapNight_Singlesided":
 					DiffuseTextureSampler_tex = mat.node_tree.nodes['DiffuseTextureSampler']
@@ -4247,16 +4247,16 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 					mix_rgb_node1.blend_type = "MIX"
 
 					uv_map_node1.uv_map = "UVMap"
-					mat.node_tree.links.new(uv_map_node1.outputs[0], Diffuse2TextureSampler_tex.inputs[0])
+					mat.node_tree.links.new(uv_map_node1.outputs['UV'], Diffuse2TextureSampler_tex.inputs['Vector'])
 
-					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs[0], mix_rgb_node1.inputs[1])
-					mat.node_tree.links.new(Diffuse2TextureSampler_tex.outputs[0], mix_rgb_node1.inputs[2])
-					mat.node_tree.links.new(mix_rgb_node1.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[0])
+					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs['Color'], mix_rgb_node1.inputs['Color1'])
+					mat.node_tree.links.new(Diffuse2TextureSampler_tex.outputs['Color'], mix_rgb_node1.inputs['Color2'])
+					mat.node_tree.links.new(mix_rgb_node1.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Base Color'])
 
 					mat.use_backface_culling = True
 
-					mat.node_tree.nodes[mMaterialId].inputs[6].default_value = 0.2
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 0.4
+					mat.node_tree.nodes[mMaterialId].inputs['Metallic'].default_value = 0.2
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 0.4
 
 				elif shader_type == "World_DiffuseBlend_Specular_Overlay_Singlesided":
 					DiffuseTextureSampler_tex = mat.node_tree.nodes['DiffuseTextureSampler']
@@ -4269,18 +4269,18 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 					mix_rgb_node1.blend_type = "OVERLAY"
 
 					uv_map_node1.uv_map = "UV2Map"
-					mat.node_tree.links.new(uv_map_node1.outputs[0], OverlayTextureSampler_tex.inputs[0])
+					mat.node_tree.links.new(uv_map_node1.outputs['UV'], OverlayTextureSampler_tex.inputs['Vector'])
 
-					mat.node_tree.links.new(OverlayTextureSampler_tex.outputs[0], mix_rgb_node1.inputs[0])
-					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs[0], mix_rgb_node1.inputs[1])
-					mat.node_tree.links.new(Diffuse2TextureSampler_tex.outputs[0], mix_rgb_node1.inputs[2])
-					mat.node_tree.links.new(mix_rgb_node1.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[0])
+					mat.node_tree.links.new(OverlayTextureSampler_tex.outputs['Color'], mix_rgb_node1.inputs['Fac'])
+					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs['Color'], mix_rgb_node1.inputs['Color1'])
+					mat.node_tree.links.new(Diffuse2TextureSampler_tex.outputs['Color'], mix_rgb_node1.inputs['Color2'])
+					mat.node_tree.links.new(mix_rgb_node1.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Base Color'])
 
 					mat.use_backface_culling = True
 
 				elif shader_type == "World_Diffuse_Normal_SpecMap_Singlesided":
-					mat.node_tree.nodes[mMaterialId].inputs[6].default_value = 0.3
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 0.7
+					mat.node_tree.nodes[mMaterialId].inputs['Metallic'].default_value = 0.3
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 0.7
 
 					mat.use_backface_culling = True
 
@@ -4289,8 +4289,8 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 
 					SpecularPower = parameters_Data[parameters_Names.index("SpecularPower")]
 
-					mat.node_tree.links.new(IlluminanceTextureSampler_tex.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[19])
-					mat.node_tree.nodes[mMaterialId].inputs[20].default_value = SpecularPower[0]
+					mat.node_tree.links.new(IlluminanceTextureSampler_tex.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Emission'])
+					mat.node_tree.nodes[mMaterialId].inputs['Emission Strength'].default_value = SpecularPower[0]
 
 				elif shader_type == "World_Normal_Reflective_Overlay_Lightmap_Singlesided":
 					DiffuseTextureSampler_tex = mat.node_tree.nodes['DiffuseTextureSampler']
@@ -4298,51 +4298,51 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 
 					uv_map_node1 = mat.node_tree.nodes.new(type='ShaderNodeUVMap')
 					uv_map_node1.uv_map = "UV2Map"
-					mat.node_tree.links.new(uv_map_node1.outputs[0], OverlayTextureSampler_tex.inputs[0])
+					mat.node_tree.links.new(uv_map_node1.outputs['UV'], OverlayTextureSampler_tex.inputs['Vector'])
 
 					materialDiffuse = parameters_Data[parameters_Names.index("materialDiffuse")]
 
 					mix_rgb_node1 = mat.node_tree.nodes.new(type='ShaderNodeMixRGB')
 
 					mix_rgb_node1.blend_type = "OVERLAY"
-					mix_rgb_node1.inputs[1].default_value = materialDiffuse
+					mix_rgb_node1.inputs['Color1'].default_value = materialDiffuse
 
-					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs[0], mix_rgb_node1.inputs[0])
-					mat.node_tree.links.new(OverlayTextureSampler_tex.outputs[0], mix_rgb_node1.inputs[1])
-					mat.node_tree.links.new(mix_rgb_node1.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[0])
+					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs['Color'], mix_rgb_node1.inputs['Fac'])
+					mat.node_tree.links.new(OverlayTextureSampler_tex.outputs['Color'], mix_rgb_node1.inputs['Color1'])
+					mat.node_tree.links.new(mix_rgb_node1.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Base Color'])
 
-					mat.node_tree.nodes[mMaterialId].inputs[6].default_value = 0.6
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 0.2
+					mat.node_tree.nodes[mMaterialId].inputs['Metallic'].default_value = 0.6
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 0.2
 
 					mat.use_backface_culling = True
 
 				elif shader_type == "World_Normal_Specular_Overlay_Singlesided":
 					NormalTextureSampler_tex = mat.node_tree.nodes['NormalTextureSampler']
 
-					mat.node_tree.links.new(NormalTextureSampler_tex.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[22])
+					mat.node_tree.links.new(NormalTextureSampler_tex.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Normal'])
 
-					mat.node_tree.nodes[mMaterialId].inputs[6].default_value = 0.5
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 0.4
+					mat.node_tree.nodes[mMaterialId].inputs['Metallic'].default_value = 0.5
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 0.4
 
 					mat.use_backface_culling = True
 
 				elif shader_type == "World_Normal_Specular_Overlay_Lightmap_Singlesided":
 					NormalTextureSampler_tex = mat.node_tree.nodes['NormalTextureSampler']
 
-					mat.node_tree.links.new(NormalTextureSampler_tex.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[22])
+					mat.node_tree.links.new(NormalTextureSampler_tex.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Normal'])
 
-					mat.node_tree.nodes[mMaterialId].inputs[6].default_value = 0.6
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 1.0
+					mat.node_tree.nodes[mMaterialId].inputs['Metallic'].default_value = 0.6
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 1.0
 
 					mat.use_backface_culling = True
 
 				elif shader_type == "World_Normal_Specular_Overlay_LightmapNight_Singlesided":
 					NormalTextureSampler_tex = mat.node_tree.nodes['NormalTextureSampler']
 
-					mat.node_tree.links.new(NormalTextureSampler_tex.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[22])
+					mat.node_tree.links.new(NormalTextureSampler_tex.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Normal'])
 
-					mat.node_tree.nodes[mMaterialId].inputs[6].default_value = 0.6
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 1.0
+					mat.node_tree.nodes[mMaterialId].inputs['Metallic'].default_value = 0.6
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 1.0
 
 					mat.use_backface_culling = True
 
@@ -4355,14 +4355,14 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 					mix_rgb_node1 = mat.node_tree.nodes.new(type='ShaderNodeMixRGB')
 
 					mix_rgb_node1.blend_type = "OVERLAY"
-					mix_rgb_node1.inputs[1].default_value = materialDiffuse
+					mix_rgb_node1.inputs['Color1'].default_value = materialDiffuse
 
-					mat.node_tree.links.new(OverlayTextureSampler_tex.outputs[0], mix_rgb_node1.inputs[0])
-					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs[0], mix_rgb_node1.inputs[2])
-					mat.node_tree.links.new(mix_rgb_node1.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[0])
+					mat.node_tree.links.new(OverlayTextureSampler_tex.outputs['Color'], mix_rgb_node1.inputs['Fac'])
+					mat.node_tree.links.new(DiffuseTextureSampler_tex.outputs['Color'], mix_rgb_node1.inputs['Color2'])
+					mat.node_tree.links.new(mix_rgb_node1.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Base Color'])
 
-					mat.node_tree.nodes[mMaterialId].inputs[6].default_value = 0.7
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 0.25
+					mat.node_tree.nodes[mMaterialId].inputs['Metallic'].default_value = 0.7
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 0.25
 
 					mat.use_backface_culling = True
 
@@ -4383,7 +4383,7 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 					mapping_node4 = mat.node_tree.nodes.new(type='ShaderNodeMapping')
 
 					mix_rgb_node3.blend_type = "OVERLAY"
-					mix_rgb_node3.inputs[0].default_value = 0.05
+					mix_rgb_node3.inputs['Fac'].default_value = 0.05
 					uv_map_node.uv_map = "UVMap"
 
 					Tiling_Ratios_X = parameters_Data[parameters_Names.index("Tiling_Ratios_X")]
@@ -4391,10 +4391,10 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 					Tiling_Ratio_Noise = parameters_Data[parameters_Names.index("Tiling_Ratio_Noise")]
 					#decalTilingRatios = parameters_Data[parameters_Names.index("decalTilingRatios")]
 
-					mat.node_tree.links.new(uv_map_node.outputs[0], mapping_node1.inputs[0])
-					mat.node_tree.links.new(uv_map_node.outputs[0], mapping_node2.inputs[0])
-					mat.node_tree.links.new(uv_map_node.outputs[0], mapping_node3.inputs[0])
-					mat.node_tree.links.new(uv_map_node.outputs[0], mapping_node4.inputs[0])
+					mat.node_tree.links.new(uv_map_node.outputs['UV'], mapping_node1.inputs[0])
+					mat.node_tree.links.new(uv_map_node.outputs['UV'], mapping_node2.inputs[0])
+					mat.node_tree.links.new(uv_map_node.outputs['UV'], mapping_node3.inputs[0])
+					mat.node_tree.links.new(uv_map_node.outputs['UV'], mapping_node4.inputs[0])
 
 					mapping_node1.inputs[3].default_value[0] = Tiling_Ratios_X[0]*1000
 					mapping_node1.inputs[3].default_value[1] = Tiling_Ratios_Y[0]*1000
@@ -4408,31 +4408,31 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 					#mapping_node4.inputs[3].default_value[0] = decalTilingRatios[0]*10.0
 					#mapping_node4.inputs[3].default_value[1] = decalTilingRatios[1]*10.0
 
-					mat.node_tree.links.new(mapping_node1.outputs[0], Tiling1TextureSampler_tex.inputs[0])
-					mat.node_tree.links.new(mapping_node2.outputs[0], Tiling2TextureSampler_tex.inputs[0])
-					mat.node_tree.links.new(mapping_node3.outputs[0], Tiling3TextureSampler_tex.inputs[0])
-					mat.node_tree.links.new(mapping_node4.outputs[0], DecalTextureSampler_tex.inputs[0])
+					mat.node_tree.links.new(mapping_node1.outputs['Vector'], Tiling1TextureSampler_tex.inputs['Vector'])
+					mat.node_tree.links.new(mapping_node2.outputs['Vector'], Tiling2TextureSampler_tex.inputs['Vector'])
+					mat.node_tree.links.new(mapping_node3.outputs['Vector'], Tiling3TextureSampler_tex.inputs['Vector'])
+					mat.node_tree.links.new(mapping_node4.outputs['Vector'], DecalTextureSampler_tex.inputs['Vector'])
 
-					mat.node_tree.links.new(Tiling2TextureSampler_tex.outputs[0], mix_rgb_node1.inputs[1])
-					mat.node_tree.links.new(Tiling3TextureSampler_tex.outputs[0], mix_rgb_node1.inputs[2])
+					mat.node_tree.links.new(Tiling2TextureSampler_tex.outputs['Color'], mix_rgb_node1.inputs['Color1'])
+					mat.node_tree.links.new(Tiling3TextureSampler_tex.outputs['Color'], mix_rgb_node1.inputs['Color2'])
 
-					mat.node_tree.links.new(Tiling1TextureSampler_tex.outputs[0], mix_rgb_node2.inputs[2])
-					mat.node_tree.links.new(mix_rgb_node1.outputs[0], mix_rgb_node2.inputs[1])
+					mat.node_tree.links.new(Tiling1TextureSampler_tex.outputs['Color'], mix_rgb_node2.inputs['Color2'])
+					mat.node_tree.links.new(mix_rgb_node1.outputs['Color'], mix_rgb_node2.inputs['Color1'])
 
-					mat.node_tree.links.new(mix_rgb_node2.outputs[0], mix_rgb_node3.inputs[1])
-					mat.node_tree.links.new(DecalTextureSampler_tex.outputs[0], mix_rgb_node3.inputs[2])
+					mat.node_tree.links.new(mix_rgb_node2.outputs['Color'], mix_rgb_node3.inputs['Color1'])
+					mat.node_tree.links.new(DecalTextureSampler_tex.outputs['Color'], mix_rgb_node3.inputs['Color2'])
 
-					mat.node_tree.links.new(mix_rgb_node3.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[0])
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 1.0
+					mat.node_tree.links.new(mix_rgb_node3.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Base Color'])
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 1.0
 
-					separete_rgb_node1 = mat.node_tree.nodes.new(type='ShaderNodeSeparateRGB')
+					separate_rgb_node1 = mat.node_tree.nodes.new(type='ShaderNodeSeparateRGB')
 					uv_map_node2 = mat.node_tree.nodes.new(type='ShaderNodeUVMap')
 					uv_map_node2.uv_map = "UVMap"
 
-					mat.node_tree.links.new(uv_map_node2.outputs[0], MaskTextureSampler_tex.inputs[0])
-					mat.node_tree.links.new(MaskTextureSampler_tex.outputs[0], separete_rgb_node1.inputs[0])
-					mat.node_tree.links.new(separete_rgb_node1.outputs[1], mix_rgb_node1.inputs[0])
-					mat.node_tree.links.new(separete_rgb_node1.outputs[0], mix_rgb_node2.inputs[0])
+					mat.node_tree.links.new(uv_map_node2.outputs['UV'], MaskTextureSampler_tex.inputs['Vector'])
+					mat.node_tree.links.new(MaskTextureSampler_tex.outputs['Color'], separate_rgb_node1.inputs['Image'])
+					mat.node_tree.links.new(separate_rgb_node1.outputs['G'], mix_rgb_node1.inputs['Fac'])
+					mat.node_tree.links.new(separate_rgb_node1.outputs['R'], mix_rgb_node2.inputs['Fac'])
 
 				elif shader_type == "HidingSpot_Proto_Lightmap":
 					Tiling1TextureSampler_tex = mat.node_tree.nodes['Tiling1TextureSampler']
@@ -4448,7 +4448,7 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 
 					mix_rgb_node1 = mat.node_tree.nodes.new(type='ShaderNodeMixRGB')
 					mix_rgb_node2 = mat.node_tree.nodes.new(type='ShaderNodeMixRGB')
-					separete_rgb_node1 = mat.node_tree.nodes.new(type='ShaderNodeSeparateRGB')
+					separate_rgb_node1 = mat.node_tree.nodes.new(type='ShaderNodeSeparateRGB')
 					uv_map_node1 = mat.node_tree.nodes.new(type='ShaderNodeUVMap')
 					uv_map_node2 = mat.node_tree.nodes.new(type='ShaderNodeUVMap')
 					uv_map_node3 = mat.node_tree.nodes.new(type='ShaderNodeUVMap')
@@ -4467,13 +4467,13 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 					Tiling_Ratios_Y = parameters_Data[parameters_Names.index("Tiling_Ratios_Y")]
 					Tiling_Ratio_Noise = parameters_Data[parameters_Names.index("Tiling_Ratio_Noise")]
 
-					mat.node_tree.links.new(uv_map_node1.outputs[0], mapping_node1.inputs[0])
-					mat.node_tree.links.new(uv_map_node1.outputs[0], mapping_node2.inputs[0])
-					mat.node_tree.links.new(uv_map_node1.outputs[0], mapping_node3.inputs[0])
-					mat.node_tree.links.new(uv_map_node1.outputs[0], mapping_node4.inputs[0])
-					mat.node_tree.links.new(uv_map_node2.outputs[0], DecalTextureSampler_tex.inputs[0])
-					mat.node_tree.links.new(uv_map_node3.outputs[0], TyreMarkTextureSampler_tex.inputs[0])
-					mat.node_tree.links.new(uv_map_node4.outputs[0], MaskTextureSampler_tex.inputs[0])
+					mat.node_tree.links.new(uv_map_node1.outputs['UV'], mapping_node1.inputs[0])
+					mat.node_tree.links.new(uv_map_node1.outputs['UV'], mapping_node2.inputs[0])
+					mat.node_tree.links.new(uv_map_node1.outputs['UV'], mapping_node3.inputs[0])
+					mat.node_tree.links.new(uv_map_node1.outputs['UV'], mapping_node4.inputs[0])
+					mat.node_tree.links.new(uv_map_node2.outputs['UV'], DecalTextureSampler_tex.inputs['Vector'])
+					mat.node_tree.links.new(uv_map_node3.outputs['UV'], TyreMarkTextureSampler_tex.inputs['Vector'])
+					mat.node_tree.links.new(uv_map_node4.outputs['UV'], MaskTextureSampler_tex.inputs['Vector'])
 
 					mapping_node1.inputs[3].default_value[0] = Tiling_Ratios_X[0]*100
 					mapping_node1.inputs[3].default_value[1] = Tiling_Ratios_Y[0]*100
@@ -4487,24 +4487,24 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 					mapping_node4.inputs[3].default_value[0] = Tiling_Ratio_Noise[0]*100
 					mapping_node4.inputs[3].default_value[1] = Tiling_Ratio_Noise[0]*100
 
-					mat.node_tree.links.new(mapping_node1.outputs[0], Tiling1TextureSampler_tex.inputs[0])
-					mat.node_tree.links.new(mapping_node2.outputs[0], Tiling2TextureSampler_tex.inputs[0])
-					mat.node_tree.links.new(mapping_node3.outputs[0], Tiling3TextureSampler_tex.inputs[0])
-					mat.node_tree.links.new(mapping_node4.outputs[0], NoiseTextureSampler_tex.inputs[0])
+					mat.node_tree.links.new(mapping_node1.outputs['Vector'], Tiling1TextureSampler_tex.inputs['Vector'])
+					mat.node_tree.links.new(mapping_node2.outputs['Vector'], Tiling2TextureSampler_tex.inputs['Vector'])
+					mat.node_tree.links.new(mapping_node3.outputs['Vector'], Tiling3TextureSampler_tex.inputs['Vector'])
+					mat.node_tree.links.new(mapping_node4.outputs['Vector'], NoiseTextureSampler_tex.inputs['Vector'])
 
-					mat.node_tree.links.new(MaskTextureSampler_tex.outputs[0], separete_rgb_node1.inputs[0])
-					mat.node_tree.links.new(separete_rgb_node1.outputs[2], mix_rgb_node1.inputs[0])
-					mat.node_tree.links.new(separete_rgb_node1.outputs[0], mix_rgb_node2.inputs[0])
+					mat.node_tree.links.new(MaskTextureSampler_tex.outputs['Color'], separate_rgb_node1.inputs['Image'])
+					mat.node_tree.links.new(separate_rgb_node1.outputs['B'], mix_rgb_node1.inputs['Fac'])
+					mat.node_tree.links.new(separate_rgb_node1.outputs['R'], mix_rgb_node2.inputs['Fac'])
 
-					mat.node_tree.links.new(Tiling1TextureSampler_tex.outputs[0], mix_rgb_node1.inputs[1])
-					mat.node_tree.links.new(Tiling3TextureSampler_tex.outputs[0], mix_rgb_node1.inputs[2])
+					mat.node_tree.links.new(Tiling1TextureSampler_tex.outputs['Color'], mix_rgb_node1.inputs['Color1'])
+					mat.node_tree.links.new(Tiling3TextureSampler_tex.outputs['Color'], mix_rgb_node1.inputs['Color2'])
 
-					mat.node_tree.links.new(Tiling2TextureSampler_tex.outputs[0], mix_rgb_node2.inputs[1])
-					mat.node_tree.links.new(mix_rgb_node1.outputs[0], mix_rgb_node2.inputs[2])
+					mat.node_tree.links.new(Tiling2TextureSampler_tex.outputs['Color'], mix_rgb_node2.inputs['Color1'])
+					mat.node_tree.links.new(mix_rgb_node1.outputs['Color'], mix_rgb_node2.inputs['Color2'])
 
-					mat.node_tree.links.new(mix_rgb_node2.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[0])
+					mat.node_tree.links.new(mix_rgb_node2.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Base Color'])
 
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 1.0
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 1.0
 
 				elif shader_type == "HidingSpot_Proto_LightmapNight":
 					Tiling1TextureSampler_tex = mat.node_tree.nodes['Tiling1TextureSampler']
@@ -4520,7 +4520,7 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 
 					mix_rgb_node1 = mat.node_tree.nodes.new(type='ShaderNodeMixRGB')
 					mix_rgb_node2 = mat.node_tree.nodes.new(type='ShaderNodeMixRGB')
-					separete_rgb_node1 = mat.node_tree.nodes.new(type='ShaderNodeSeparateRGB')
+					separate_rgb_node1 = mat.node_tree.nodes.new(type='ShaderNodeSeparateRGB')
 					uv_map_node1 = mat.node_tree.nodes.new(type='ShaderNodeUVMap')
 					uv_map_node2 = mat.node_tree.nodes.new(type='ShaderNodeUVMap')
 					uv_map_node3 = mat.node_tree.nodes.new(type='ShaderNodeUVMap')
@@ -4539,13 +4539,13 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 					Tiling_Ratios_Y = parameters_Data[parameters_Names.index("Tiling_Ratios_Y")]
 					Tiling_Ratio_Noise = parameters_Data[parameters_Names.index("Tiling_Ratio_Noise")]
 
-					mat.node_tree.links.new(uv_map_node1.outputs[0], mapping_node1.inputs[0])
-					mat.node_tree.links.new(uv_map_node1.outputs[0], mapping_node2.inputs[0])
-					mat.node_tree.links.new(uv_map_node1.outputs[0], mapping_node3.inputs[0])
-					mat.node_tree.links.new(uv_map_node1.outputs[0], mapping_node4.inputs[0])
-					mat.node_tree.links.new(uv_map_node2.outputs[0], DecalTextureSampler_tex.inputs[0])
-					mat.node_tree.links.new(uv_map_node3.outputs[0], TyreMarkTextureSampler_tex.inputs[0])
-					mat.node_tree.links.new(uv_map_node4.outputs[0], MaskTextureSampler_tex.inputs[0])
+					mat.node_tree.links.new(uv_map_node1.outputs['UV'], mapping_node1.inputs[0])
+					mat.node_tree.links.new(uv_map_node1.outputs['UV'], mapping_node2.inputs[0])
+					mat.node_tree.links.new(uv_map_node1.outputs['UV'], mapping_node3.inputs[0])
+					mat.node_tree.links.new(uv_map_node1.outputs['UV'], mapping_node4.inputs[0])
+					mat.node_tree.links.new(uv_map_node2.outputs['UV'], DecalTextureSampler_tex.inputs['Vector'])
+					mat.node_tree.links.new(uv_map_node3.outputs['UV'], TyreMarkTextureSampler_tex.inputs['Vector'])
+					mat.node_tree.links.new(uv_map_node4.outputs['UV'], MaskTextureSampler_tex.inputs['Vector'])
 
 					mapping_node1.inputs[3].default_value[0] = Tiling_Ratios_X[0]*100
 					mapping_node1.inputs[3].default_value[1] = Tiling_Ratios_Y[0]*100
@@ -4559,24 +4559,24 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 					mapping_node4.inputs[3].default_value[0] = Tiling_Ratio_Noise[0]*100
 					mapping_node4.inputs[3].default_value[1] = Tiling_Ratio_Noise[0]*100
 
-					mat.node_tree.links.new(mapping_node1.outputs[0], Tiling1TextureSampler_tex.inputs[0])
-					mat.node_tree.links.new(mapping_node2.outputs[0], Tiling2TextureSampler_tex.inputs[0])
-					mat.node_tree.links.new(mapping_node3.outputs[0], Tiling3TextureSampler_tex.inputs[0])
-					mat.node_tree.links.new(mapping_node4.outputs[0], NoiseTextureSampler_tex.inputs[0])
+					mat.node_tree.links.new(mapping_node1.outputs['Vector'], Tiling1TextureSampler_tex.inputs['Vector'])
+					mat.node_tree.links.new(mapping_node2.outputs['Vector'], Tiling2TextureSampler_tex.inputs['Vector'])
+					mat.node_tree.links.new(mapping_node3.outputs['Vector'], Tiling3TextureSampler_tex.inputs['Vector'])
+					mat.node_tree.links.new(mapping_node4.outputs['Vector'], NoiseTextureSampler_tex.inputs['Vector'])
 
-					mat.node_tree.links.new(MaskTextureSampler_tex.outputs[0], separete_rgb_node1.inputs[0])
-					mat.node_tree.links.new(separete_rgb_node1.outputs[2], mix_rgb_node1.inputs[0])
-					mat.node_tree.links.new(separete_rgb_node1.outputs[0], mix_rgb_node2.inputs[0])
+					mat.node_tree.links.new(MaskTextureSampler_tex.outputs['Color'], separate_rgb_node1.inputs['Image'])
+					mat.node_tree.links.new(separate_rgb_node1.outputs['B'], mix_rgb_node1.inputs['Fac'])
+					mat.node_tree.links.new(separate_rgb_node1.outputs['R'], mix_rgb_node2.inputs['Fac'])
 
-					mat.node_tree.links.new(Tiling1TextureSampler_tex.outputs[0], mix_rgb_node1.inputs[1])
-					mat.node_tree.links.new(Tiling3TextureSampler_tex.outputs[0], mix_rgb_node1.inputs[2])
+					mat.node_tree.links.new(Tiling1TextureSampler_tex.outputs['Color'], mix_rgb_node1.inputs['Color1'])
+					mat.node_tree.links.new(Tiling3TextureSampler_tex.outputs['Color'], mix_rgb_node1.inputs['Color2'])
 
-					mat.node_tree.links.new(Tiling2TextureSampler_tex.outputs[0], mix_rgb_node2.inputs[1])
-					mat.node_tree.links.new(mix_rgb_node1.outputs[0], mix_rgb_node2.inputs[2])
+					mat.node_tree.links.new(Tiling2TextureSampler_tex.outputs['Color'], mix_rgb_node2.inputs['Color1'])
+					mat.node_tree.links.new(mix_rgb_node1.outputs['Color'], mix_rgb_node2.inputs['Color2'])
 
-					mat.node_tree.links.new(mix_rgb_node2.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[0])
+					mat.node_tree.links.new(mix_rgb_node2.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Base Color'])
 
-					mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 1.0
+					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 1.0
 
 				elif shader_type != "":
 					print("DEBUG: shader type %s, used on material %s, still does not have its shading set." % (shader_type, mMaterialId))
@@ -4589,28 +4589,28 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 
 					mix_rgb_nodeAO.blend_type = "OVERLAY"
 
-					mat.node_tree.links.new(AoMapTextureSampler_tex.outputs[0], color_ramp_node1.inputs[0])
-					mat.node_tree.links.new(color_ramp_node1.outputs[0], mix_rgb_nodeAO.inputs[2])
+					mat.node_tree.links.new(AoMapTextureSampler_tex.outputs['Color'], color_ramp_node1.inputs['Fac'])
+					mat.node_tree.links.new(color_ramp_node1.outputs['Color'], mix_rgb_nodeAO.inputs['Color2'])
 
-					if len(mat.node_tree.nodes[mMaterialId].inputs[0].links) > 0:
-						node = mat.node_tree.nodes[mMaterialId].inputs[0].links[0].from_node
-						mat.node_tree.links.new(node.outputs[0], mix_rgb_nodeAO.inputs[1])
-						mat.node_tree.links.new(mix_rgb_nodeAO.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[0])
+					if len(mat.node_tree.nodes[mMaterialId].inputs['Base Color'].links) > 0:
+						node = mat.node_tree.nodes[mMaterialId].inputs['Base Color'].links[0].from_node
+						mat.node_tree.links.new(node.outputs[0], mix_rgb_nodeAO.inputs['Color1'])
+						mat.node_tree.links.new(mix_rgb_nodeAO.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Base Color'])
 					else:
-						mix_rgb_nodeAO.inputs[1].default_value = mat.node_tree.nodes[mMaterialId].inputs[0].default_value
+						mix_rgb_nodeAO.inputs['Fac'].default_value = mat.node_tree.nodes[mMaterialId].inputs['Base Color'].default_value
 						if "mMaterialDiffuse" in parameters_Names or "materialDiffuse" in parameters_Names or "mGlassColour" in parameters_Names:
 							pass
 						else:
 							pass
 							# Not linking, avoiding problems
-							mat.node_tree.links.new(mix_rgb_nodeAO.outputs[0], mat.node_tree.nodes[mMaterialId].inputs[0])
+							mat.node_tree.links.new(mix_rgb_nodeAO.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Base Color'])
 
 			# Untextured
 			# Vehicle
 			if shader_type == "Vehicle_Opaque_Reflective":
-				mat.node_tree.nodes[mMaterialId].inputs[6].default_value = 1.0
-				mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 0.0
-				mat.node_tree.nodes[mMaterialId].inputs[17].default_value = 0.0
+				mat.node_tree.nodes[mMaterialId].inputs['Metallic'].default_value = 1.0
+				mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 0.0
+				mat.node_tree.nodes[mMaterialId].inputs['Transmission'].default_value = 0.0
 
 				mat.use_screen_refraction = True
 				mat.refraction_depth = 0.01
@@ -4622,9 +4622,9 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 
 			# Track
 			elif shader_type == "Cable_GreyScale_Doublesided":
-				mat.node_tree.nodes[mMaterialId].inputs[0].default_value = (0.0, 0.0, 0.0, 1.0)
-				mat.node_tree.nodes[mMaterialId].inputs[6].default_value = 0.4
-				mat.node_tree.nodes[mMaterialId].inputs[9].default_value = 0.5
+				mat.node_tree.nodes[mMaterialId].inputs['Base Color'].default_value = (0.0, 0.0, 0.0, 1.0)
+				mat.node_tree.nodes[mMaterialId].inputs['Metallic'].default_value = 0.4
+				mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 0.5
 
 
 			# Properties
@@ -7701,7 +7701,7 @@ def create_zone(muZoneId, zonepoints, muDistrictId, RGBA_random_district, resour
 		mat.name = material_name
 		if mat.node_tree.nodes[0].bl_idname != "ShaderNodeOutputMaterial":
 			mat.node_tree.nodes[0].name = material_name
-		mat.node_tree.nodes[material_name].inputs[0].default_value = RGBA_random_district
+		mat.node_tree.nodes[material_name].inputs['Base Color'].default_value = RGBA_random_district
 
 	if mat.name not in me_ob.materials:
 		me_ob.materials.append(mat)
