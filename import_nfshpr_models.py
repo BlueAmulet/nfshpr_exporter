@@ -4373,57 +4373,89 @@ def main_pc(context, file_path, resource_version, resource_type, is_bundle, clea
 					Tiling3TextureSampler_tex = mat.node_tree.nodes['Tiling3TextureSampler']
 					MaskTextureSampler_tex = mat.node_tree.nodes['MaskTextureSampler']
 					DecalTextureSampler_tex = mat.node_tree.nodes['DecalTextureSampler']
+					TyreMarkTextureSampler_tex = mat.node_tree.nodes['TyreMarkTextureSampler']
 
+					mix_rgb_tile1 = mat.node_tree.nodes.new(type='ShaderNodeMixRGB')
+					mix_rgb_tile2 = mat.node_tree.nodes.new(type='ShaderNodeMixRGB')
+					mix_rgb_tile3 = mat.node_tree.nodes.new(type='ShaderNodeMixRGB')
 					mix_rgb_node1 = mat.node_tree.nodes.new(type='ShaderNodeMixRGB')
 					mix_rgb_node2 = mat.node_tree.nodes.new(type='ShaderNodeMixRGB')
-					mix_rgb_node3 = mat.node_tree.nodes.new(type='ShaderNodeMixRGB')
-					uv_map_node = mat.node_tree.nodes.new(type='ShaderNodeUVMap')
+					geometry_node = mat.node_tree.nodes.new(type='ShaderNodeNewGeometry')
+					vector_math_node = mat.node_tree.nodes.new(type='ShaderNodeVectorMath')
 					mapping_node1 = mat.node_tree.nodes.new(type='ShaderNodeMapping')
 					mapping_node2 = mat.node_tree.nodes.new(type='ShaderNodeMapping')
 					mapping_node3 = mat.node_tree.nodes.new(type='ShaderNodeMapping')
-					mapping_node4 = mat.node_tree.nodes.new(type='ShaderNodeMapping')
 
-					mix_rgb_node3.blend_type = "OVERLAY"
-					mix_rgb_node3.inputs['Fac'].default_value = 0.05
-					uv_map_node.uv_map = "UVMap"
+					vector_math_node.operation = "MULTIPLY"
+					vector_math_node.inputs[1].default_value = (1.0, -1.0, 0.0)
+					mix_rgb_tile1.blend_type = "MULTIPLY"
+					mix_rgb_tile2.blend_type = "MULTIPLY"
+					mix_rgb_tile3.blend_type = "MULTIPLY"
+					mix_rgb_tile1.inputs['Fac'].default_value = 1.0
+					mix_rgb_tile2.inputs['Fac'].default_value = 1.0
+					mix_rgb_tile3.inputs['Fac'].default_value = 1.0
+					mix_rgb_tile1.inputs['Color2'].default_value = parameters_Data[parameters_Names.index("tiling1Diffuse")]
+					mix_rgb_tile2.inputs['Color2'].default_value = parameters_Data[parameters_Names.index("tiling2Diffuse")]
+					mix_rgb_tile3.inputs['Color2'].default_value = parameters_Data[parameters_Names.index("tiling3Diffuse")]
 
 					Tiling_Ratios_X = parameters_Data[parameters_Names.index("Tiling_Ratios_X")]
 					Tiling_Ratios_Y = parameters_Data[parameters_Names.index("Tiling_Ratios_Y")]
 					Tiling_Ratio_Noise = parameters_Data[parameters_Names.index("Tiling_Ratio_Noise")]
-					#decalTilingRatios = parameters_Data[parameters_Names.index("decalTilingRatios")]
 
-					mat.node_tree.links.new(uv_map_node.outputs['UV'], mapping_node1.inputs[0])
-					mat.node_tree.links.new(uv_map_node.outputs['UV'], mapping_node2.inputs[0])
-					mat.node_tree.links.new(uv_map_node.outputs['UV'], mapping_node3.inputs[0])
-					mat.node_tree.links.new(uv_map_node.outputs['UV'], mapping_node4.inputs[0])
+					mat.node_tree.links.new(geometry_node.outputs['Position'], vector_math_node.inputs[0])
+					mat.node_tree.links.new(vector_math_node.outputs['Vector'], mapping_node1.inputs[0])
+					mat.node_tree.links.new(vector_math_node.outputs['Vector'], mapping_node2.inputs[0])
+					mat.node_tree.links.new(vector_math_node.outputs['Vector'], mapping_node3.inputs[0])
 
-					mapping_node1.inputs[3].default_value[0] = Tiling_Ratios_X[0]*1000
-					mapping_node1.inputs[3].default_value[1] = Tiling_Ratios_Y[0]*1000
+					mapping_node1.inputs[3].default_value[0] = Tiling_Ratios_X[0]
+					mapping_node1.inputs[3].default_value[1] = Tiling_Ratios_Y[0]
 
-					mapping_node2.inputs[3].default_value[0] = Tiling_Ratios_X[1]*1000
-					mapping_node2.inputs[3].default_value[1] = Tiling_Ratios_Y[1]*1000
+					mapping_node2.inputs[3].default_value[0] = Tiling_Ratios_X[1]
+					mapping_node2.inputs[3].default_value[1] = Tiling_Ratios_Y[1]
 
-					mapping_node3.inputs[3].default_value[0] = Tiling_Ratios_X[2]*1000
-					mapping_node3.inputs[3].default_value[1] = Tiling_Ratios_Y[2]*1000
-
-					#mapping_node4.inputs[3].default_value[0] = decalTilingRatios[0]*10.0
-					#mapping_node4.inputs[3].default_value[1] = decalTilingRatios[1]*10.0
+					mapping_node3.inputs[3].default_value[0] = Tiling_Ratios_X[2]
+					mapping_node3.inputs[3].default_value[1] = Tiling_Ratios_Y[2]
 
 					mat.node_tree.links.new(mapping_node1.outputs['Vector'], Tiling1TextureSampler_tex.inputs['Vector'])
 					mat.node_tree.links.new(mapping_node2.outputs['Vector'], Tiling2TextureSampler_tex.inputs['Vector'])
 					mat.node_tree.links.new(mapping_node3.outputs['Vector'], Tiling3TextureSampler_tex.inputs['Vector'])
-					mat.node_tree.links.new(mapping_node4.outputs['Vector'], DecalTextureSampler_tex.inputs['Vector'])
 
-					mat.node_tree.links.new(Tiling2TextureSampler_tex.outputs['Color'], mix_rgb_node1.inputs['Color1'])
-					mat.node_tree.links.new(Tiling3TextureSampler_tex.outputs['Color'], mix_rgb_node1.inputs['Color2'])
+					mat.node_tree.links.new(Tiling1TextureSampler_tex.outputs['Color'], mix_rgb_tile1.inputs[1])
+					mat.node_tree.links.new(Tiling2TextureSampler_tex.outputs['Color'], mix_rgb_tile2.inputs[1])
+					mat.node_tree.links.new(Tiling3TextureSampler_tex.outputs['Color'], mix_rgb_tile3.inputs[1])
 
-					mat.node_tree.links.new(Tiling1TextureSampler_tex.outputs['Color'], mix_rgb_node2.inputs['Color2'])
+					mat.node_tree.links.new(mix_rgb_tile2.outputs['Color'], mix_rgb_node1.inputs['Color2'])
+					mat.node_tree.links.new(mix_rgb_tile3.outputs['Color'], mix_rgb_node1.inputs['Color1'])
+
+					mat.node_tree.links.new(mix_rgb_tile1.outputs['Color'], mix_rgb_node2.inputs['Color2'])
 					mat.node_tree.links.new(mix_rgb_node1.outputs['Color'], mix_rgb_node2.inputs['Color1'])
 
-					mat.node_tree.links.new(mix_rgb_node2.outputs['Color'], mix_rgb_node3.inputs['Color1'])
-					mat.node_tree.links.new(DecalTextureSampler_tex.outputs['Color'], mix_rgb_node3.inputs['Color2'])
+					uv_map_decal = mat.node_tree.nodes.new(type='ShaderNodeUVMap')
+					separate_rgb_decal = mat.node_tree.nodes.new(type='ShaderNodeSeparateRGB')
+					mix_rgb_node3 = mat.node_tree.nodes.new(type='ShaderNodeMixRGB')
+					mix_rgb_node4 = mat.node_tree.nodes.new(type='ShaderNodeMixRGB')
+					uv_map_decal.uv_map = "UV2Map"
+					mix_rgb_node3.blend_type = "MULTIPLY"
+					mix_rgb_node3.inputs['Fac'].default_value = 1.0
+					mix_rgb_node3.inputs['Color2'].default_value = parameters_Data[parameters_Names.index("decal_Diffuse")]
 
-					mat.node_tree.links.new(mix_rgb_node3.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Base Color'])
+					mat.node_tree.links.new(uv_map_decal.outputs['UV'], DecalTextureSampler_tex.inputs['Vector'])
+					mat.node_tree.links.new(DecalTextureSampler_tex.outputs['Color'], separate_rgb_decal.inputs['Image'])
+					mat.node_tree.links.new(separate_rgb_decal.outputs['R'], mix_rgb_node3.inputs['Color1'])
+					mat.node_tree.links.new(separate_rgb_decal.outputs['G'], mix_rgb_node4.inputs['Fac'])
+					mat.node_tree.links.new(mix_rgb_node2.outputs['Color'], mix_rgb_node4.inputs['Color1'])
+					mat.node_tree.links.new(mix_rgb_node3.outputs['Color'], mix_rgb_node4.inputs['Color2'])
+
+					uv_map_node3 = mat.node_tree.nodes.new(type='ShaderNodeUVMap')
+					mix_rgb_node5 = mat.node_tree.nodes.new(type='ShaderNodeMixRGB')
+					uv_map_node3.uv_map = "UV3Map"
+					mix_rgb_node5.blend_type = "MULTIPLY"
+					mix_rgb_node5.inputs['Fac'].default_value = 1.0
+					mat.node_tree.links.new(uv_map_node3.outputs['UV'], TyreMarkTextureSampler_tex.inputs['Vector'])
+					mat.node_tree.links.new(mix_rgb_node4.outputs['Color'], mix_rgb_node5.inputs['Color1'])
+					mat.node_tree.links.new(TyreMarkTextureSampler_tex.outputs['Color'], mix_rgb_node5.inputs['Color2'])
+
+					mat.node_tree.links.new(mix_rgb_node5.outputs['Color'], mat.node_tree.nodes[mMaterialId].inputs['Base Color'])
 					mat.node_tree.nodes[mMaterialId].inputs['Roughness'].default_value = 1.0
 
 					separate_rgb_node1 = mat.node_tree.nodes.new(type='ShaderNodeSeparateRGB')
