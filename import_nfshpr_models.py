@@ -6984,8 +6984,8 @@ def create_renderable(renderable, materials, shaders, resource_type):
 	renderable_body_path = os.path.splitext(renderable_path)[0] + "_model" + os.path.splitext(renderable_path)[1]
 
 	with open(renderable_body_path, "rb") as f:
-		indices_buffer = [[] for _ in range(num_meshes)]
-		vertices_buffer = [[] for _ in range(num_meshes)]
+		indices_buffer = [None] * num_meshes
+		vertices_buffer = [None] * num_meshes
 		sensors_list = []
 		bones_list = []
 
@@ -7020,9 +7020,6 @@ def create_renderable(renderable, materials, shaders, resource_type):
 
 			f.seek(indices_buffer_offset, 0)
 
-			mesh_indices = []
-
-			tristrip_indices = []
 			if indices_size == 4:
 				indices_type = "I"
 				terminator = 0xFFFFFFFF
@@ -7030,21 +7027,17 @@ def create_renderable(renderable, materials, shaders, resource_type):
 				indices_type = "H"
 				terminator = 0xFFFF
 
-			for i in range(0, indices_buffer_count):
-				index = struct.unpack("<%s" % (indices_type), f.read(indices_size))[0]
-				if index != terminator and index >= vertices_buffer_size/vertex_size:
-					continue
+			indices = struct.unpack(f"<{indices_buffer_count}{indices_type}", f.read(indices_size * indices_buffer_count))
 
-				tristrip_indices.append(index)
+			max_index = vertices_buffer_size // vertex_size
 
-			for index in tristrip_indices:
-				if index in mesh_indices:
-					continue
-				if index == terminator:
-					continue
-				mesh_indices.append(index)
+			tristrip_indices = [idx for idx in indices if idx == terminator or idx < max_index]
 
-			indices_buffer[mesh_index] = get_triangle_from_trianglestrip(tristrip_indices, vertices_buffer_size/vertex_size)
+			mesh_indices = set(tristrip_indices)
+			if terminator in mesh_indices:
+				mesh_indices.remove(terminator)
+
+			indices_buffer[mesh_index] = get_triangle_from_trianglestrip(tristrip_indices, max_index)
 
 			padding = calculate_padding(f.tell(), 0x10)
 			if padding == 0:
@@ -7082,22 +7075,21 @@ def create_renderable(renderable, materials, shaders, resource_type):
 
 			mesh_vertices_buffer = []
 
-			f.seek(vertices_buffer_offset, 0)
 			for index in mesh_indices:
-				position = []
-				normal = []
-				normal2 = []
-				color = []
-				color2 = []
-				tangent = []
-				uv1 = []
-				uv2 = []
-				uv3 = []
-				uv4 = []
-				uv5 = []
-				uv6 = []
-				blend_indices = []
-				blend_weight = []
+				position = None
+				normal = None
+				normal2 = None
+				color = None
+				color2 = None
+				tangent = None
+				uv1 = None
+				uv2 = None
+				uv3 = None
+				uv4 = None
+				uv5 = None
+				uv6 = None
+				blend_indices = None
+				blend_weight = None
 				for semantic in semantic_properties:
 					f.seek(vertices_buffer_offset + index*vertex_size, 0)
 
@@ -7108,15 +7100,15 @@ def create_renderable(renderable, materials, shaders, resource_type):
 
 					f.seek(data_offset, 1)
 					if data_type[0][-1] == "e":
-						values = frombuffer(f.read(data_type[1]), dtype="<%s" % data_type[0][-1])	#np.frombuffer
+						values = frombuffer(f.read(data_type[1]), dtype="<e").tolist()	#np.frombuffer
 					elif "norm" in data_type[0]:
 						data_type_ = data_type[0].replace("norm", "")
-						values = struct.unpack("<%s" % data_type_, f.read(data_type[1]))
+						values = struct.unpack("<" + data_type_, f.read(data_type[1]))
 						#scale = 10.0
 						scale = 8.0
-						values = [values[0]/values[3] * scale, values[1]/values[3] * scale, values[2]/values[3] * scale]
+						values = (values[0]/values[3] * scale, values[1]/values[3] * scale, values[2]/values[3] * scale)
 					else:
-						values = struct.unpack("<%s" % data_type[0], f.read(data_type[1]))
+						values = struct.unpack("<" + data_type[0], f.read(data_type[1]))
 
 					if semantic_type == "POSITION":
 						position = values
@@ -7158,18 +7150,19 @@ def create_renderable(renderable, materials, shaders, resource_type):
 					elif semantic_type == "PSIZE":
 						pass
 
-				if normal == [] and normal2 != []:
+				if normal is None and normal2 is not None:
 					normal = normal2[:]
 
-				sensors_list.extend(blend_indices[0:2])
-				if resource_type == "CharacterSpec" or resource_type == "InstanceList":
-					sensors_list.extend(blend_indices[2:4])
-				else:
-					bones_list.extend(blend_indices[2:4])
+				if blend_indices is not None:
+					sensors_list.extend(blend_indices[0:2])
+					if resource_type == "CharacterSpec" or resource_type == "InstanceList":
+						sensors_list.extend(blend_indices[2:4])
+					else:
+						bones_list.extend(blend_indices[2:4])
 
-				mesh_vertices_buffer.append([index, position, normal, tangent, color, uv1, uv2, uv3, uv4, uv5, uv6, blend_indices, blend_weight, color2])
+				mesh_vertices_buffer.append((index, position, normal, tangent, color, uv1, uv2, uv3, uv4, uv5, uv6, blend_indices, blend_weight, color2))
 
-			vertices_buffer[mesh_index] = [semantic_types, mesh_vertices_buffer, semantic_data_types, shader_description]
+			vertices_buffer[mesh_index] = (semantic_types, mesh_vertices_buffer, semantic_data_types, shader_description)
 
 	sensors_list = sorted(set(sensors_list))
 	bones_list = sorted(set(bones_list))
@@ -7274,7 +7267,7 @@ def create_renderable(renderable, materials, shaders, resource_type):
 			index, position, normal, tangent, color, uv1, uv2, uv3, uv4, uv5, uv6, blend_indices, blend_weight, color2 = vertex_data
 			BMVert = bm.verts.new(position)
 			BMVert.index = index
-			BMVert_dictionary[index] = [BMVert, uv1, uv2, uv3, uv4, uv5, uv6, color, color2]
+			BMVert_dictionary[index] = (BMVert, uv1, uv2, uv3, uv4, uv5, uv6, color, color2)
 			vert_indices[mesh_index].append(BMVert.index)
 
 			if "NORMAL" in semantic_types:
@@ -7321,8 +7314,16 @@ def create_renderable(renderable, materials, shaders, resource_type):
 							BMVert[dl][vgroup.index] = blend_weight[i]/255.0
 							break
 
+		has_uv1 = "TEXCOORD1" in semantic_types
+		has_uv2 = "TEXCOORD2" in semantic_types
+		has_uv3 = "TEXCOORD3" in semantic_types
+		has_uv4 = "TEXCOORD4" in semantic_types
+		has_uv5 = "TEXCOORD5" in semantic_types and semantic_data_types[semantic_types.index("TEXCOORD5")] == "2e"
+		has_uv6 = "TEXCOORD6" in semantic_types
+		has_color = "COLOR" in semantic_types
+
 		for i, face in enumerate(indices):
-			face_vertices = [BMVert_dictionary[face[0]][0], BMVert_dictionary[face[1]][0], BMVert_dictionary[face[2]][0]]
+			face_vertices = (BMVert_dictionary[face[0]][0], BMVert_dictionary[face[1]][0], BMVert_dictionary[face[2]][0])
 			BMFace = bm.faces.get(face_vertices) or bm.faces.new(face_vertices)
 			if BMFace.index != -1:
 				BMFace = BMFace.copy(verts=False, edges=False)
@@ -7330,29 +7331,24 @@ def create_renderable(renderable, materials, shaders, resource_type):
 			BMFace.smooth = True
 			BMFace.material_index = material_index
 
-			if "TEXCOORD1" in semantic_types:
-				for index, loop in enumerate(BMFace.loops):
-					loop[uv_layer].uv = [BMVert_dictionary[loop.vert.index][1][0], 1.0 - BMVert_dictionary[loop.vert.index][1][1]]
-			if "TEXCOORD2" in semantic_types:
-				for index, loop in enumerate(BMFace.loops):
-					loop[uv2_layer].uv = [BMVert_dictionary[loop.vert.index][2][0], 1.0 - BMVert_dictionary[loop.vert.index][2][1]]
-			if "TEXCOORD3" in semantic_types:
-				for index, loop in enumerate(BMFace.loops):
-					loop[uv3_layer].uv = [BMVert_dictionary[loop.vert.index][3][0], 1.0 - BMVert_dictionary[loop.vert.index][3][1]]
-			if "TEXCOORD4" in semantic_types:
-				for index, loop in enumerate(BMFace.loops):
-					loop[uv4_layer].uv = [BMVert_dictionary[loop.vert.index][4][0], 1.0 - BMVert_dictionary[loop.vert.index][4][1]]
-			if "TEXCOORD5" in semantic_types and semantic_data_types[semantic_types.index("TEXCOORD5")] == "2e":
-				for index, loop in enumerate(BMFace.loops):
-					loop[uv5_layer].uv = [BMVert_dictionary[loop.vert.index][5][0], 1.0 - BMVert_dictionary[loop.vert.index][5][1]]
-			if "TEXCOORD6" in semantic_types:
-				for index, loop in enumerate(BMFace.loops):
-					loop[uv6_layer].uv = [BMVert_dictionary[loop.vert.index][6][0], 1.0 - BMVert_dictionary[loop.vert.index][6][1]]
+			for loop in BMFace.loops:
+				v = BMVert_dictionary[loop.vert.index]
+				if has_uv1:
+					loop[uv_layer].uv = (v[1][0], 1.0 - v[1][1])
+				if has_uv2:
+					loop[uv2_layer].uv = (v[2][0], 1.0 - v[2][1])
+				if has_uv3:
+					loop[uv3_layer].uv = (v[3][0], 1.0 - v[3][1])
+				if has_uv4:
+					loop[uv4_layer].uv = (v[4][0], 1.0 - v[4][1])
+				if has_uv5:
+					loop[uv5_layer].uv = (v[5][0], 1.0 - v[5][1])
+				if has_uv6:
+					loop[uv6_layer].uv = (v[6][0], 1.0 - v[6][1])
 
-			if "COLOR" in semantic_types:
-				for index, loop in enumerate(BMFace.loops):
-					color = BMVert_dictionary[loop.vert.index][7][:]
-					loop[color_layer] = [color[0]/255.0, color[1]/255.0, color[2]/255.0, color[3]/255.0]
+				if has_color:
+					color = v[7][:]
+					loop[color_layer] = (color[0]/255.0, color[1]/255.0, color[2]/255.0, color[3]/255.0)
 
 		if shader_description in ("Foliage_LargeSprites_Proto", "Foliage_LargeSprites_Proto_Spec_Normal", "Foliage_Proto", "Foliage_Proto_Spec_Normal"):
 			mat = bpy.data.materials.get(mMaterialId)
@@ -7798,7 +7794,7 @@ def get_triangle_from_trianglestrip(TriStrip, vertices_count):
 				c = TriStrip[i]
 			if a != b and b != c and c != a:
 				if (a < vertices_count) and (b < vertices_count) and (c < vertices_count):
-					indices_buffer.append([a, b, c])
+					indices_buffer.append((a, b, c))
 
 	# indices = TriStrip[:]
 	# indices_buffer = []
@@ -8457,7 +8453,7 @@ def clearScene(context): # OK
 def NFSHPLibraryGet(): # OK
 	spaths = bpy.utils.script_paths()
 	for rpath in spaths:
-		tpath = rpath + '\\addons\\NeedForSpeedHotPursuit'
+		tpath = os.path.join(rpath, 'addons/NeedForSpeedHotPursuit')
 		if os.path.exists(tpath):
 			npath = '"' + tpath + '"'
 			return tpath
@@ -8592,7 +8588,7 @@ class ImportNFSHP(Operator, ImportHelper):
 
 		global_matrix = axis_conversion(from_forward='Z', from_up='Y', to_forward=self.axis_forward, to_up=self.axis_up).to_4x4()
 
-		os.system('cls')
+		os.system('cls' if os.name=='nt' else 'clear')
 		status = main(context, self.filepath, option_to_resource_version(self.resource_version), option_to_resource_type(self.resource_type), self.is_bundle,
 					  self.clear_scene, self.debug_prefer_shared_asset, self.hide_low_lods, self.hide_polygonsoup, self.hide_skeleton, self.hide_controlmesh,
 					  self.hide_effects, self.random_color, global_matrix)
