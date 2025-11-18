@@ -6983,6 +6983,8 @@ def create_renderable(renderable, materials, shaders, resource_type):
 	num_meshes = len(meshes_info)
 	renderable_body_path = os.path.splitext(renderable_path)[0] + "_model" + os.path.splitext(renderable_path)[1]
 
+	used_texcoord_uvs = set()
+
 	with open(renderable_body_path, "rb") as f:
 		indices_buffer = [None] * num_meshes
 		vertices_buffer = [None] * num_meshes
@@ -7068,6 +7070,10 @@ def create_renderable(renderable, materials, shaders, resource_type):
 			# semantic_properties = vertex_properties[1][0]
 
 			semantic_types = {semantic[0]: semantic[1][0] for semantic in semantic_properties}
+			for semantic in semantic_properties:
+				semantic_type = semantic[0]
+				if semantic_type.startswith("TEXCOORD") and semantic[1][0][0] == "2":
+					used_texcoord_uvs.add(semantic_type)
 
 			mesh_vertices_buffer = []
 
@@ -7201,6 +7207,19 @@ def create_renderable(renderable, materials, shaders, resource_type):
 	has_some_normal_data = False
 	vgroups = []
 
+	if "TEXCOORD1" in used_texcoord_uvs:
+		bm.loops.layers.uv.new("UVMap")
+	if "TEXCOORD2" in used_texcoord_uvs:
+		bm.loops.layers.uv.new("UV2Map")
+	if "TEXCOORD3" in used_texcoord_uvs:
+		bm.loops.layers.uv.new("UV3Map")
+	if "TEXCOORD4" in used_texcoord_uvs:
+		bm.loops.layers.uv.new("UV4Map")
+	if "TEXCOORD5" in used_texcoord_uvs:
+		bm.loops.layers.uv.new("UV5Map")
+	if "TEXCOORD6" in used_texcoord_uvs:
+		bm.loops.layers.uv.new("UV6Map")
+
 	for mesh_info in meshes_info:
 		mesh_index = mesh_info[0]
 		mMaterialId = mesh_info[-1]
@@ -7216,48 +7235,35 @@ def create_renderable(renderable, materials, shaders, resource_type):
 
 		BMVert_dictionary = {}
 
-		# uvName = "UVMap"
-		# uv_layer = bm.loops.layers.uv.get(uvName) or bm.loops.layers.uv.new(uvName)
-		# uvName = "UV2Map"
-		# uv2_layer = bm.loops.layers.uv.get(uvName) or bm.loops.layers.uv.new(uvName)
-		# uvName = "UV3Map"
-		# uv3_layer = bm.loops.layers.uv.get(uvName) or bm.loops.layers.uv.new(uvName)
-		# uvName = "UV4Map"
-		# uv4_layer = bm.loops.layers.uv.get(uvName) or bm.loops.layers.uv.new(uvName)
-		# uvName = "UV5Map"
-		# uv5_layer = bm.loops.layers.uv.get(uvName) or bm.loops.layers.uv.new(uvName)
-		# uvName = "UV6Map"
-		# uv6_layer = bm.loops.layers.uv.get(uvName) or bm.loops.layers.uv.new(uvName)
-
 		semantic_type = "TEXCOORD1"
 		if semantic_type in semantic_types and semantic_types[semantic_type][0] == "2":		 #2f, 2e, 2h,...
 			uvName = "UVMap" #or UV1Map
-			uv_layer = bm.loops.layers.uv.get(uvName) or bm.loops.layers.uv.new(uvName)
+			uv_layer = bm.loops.layers.uv.get(uvName)
 
 		semantic_type = "TEXCOORD2"
 		if semantic_type in semantic_types and semantic_types[semantic_type][0] == "2":
 			uvName = "UV2Map"
-			uv2_layer = bm.loops.layers.uv.get(uvName) or bm.loops.layers.uv.new(uvName)
+			uv2_layer = bm.loops.layers.uv.get(uvName)
 
 		semantic_type = "TEXCOORD3"
 		if semantic_type in semantic_types and semantic_types[semantic_type][0] == "2":
 			uvName = "UV3Map"
-			uv3_layer = bm.loops.layers.uv.get(uvName) or bm.loops.layers.uv.new(uvName)
+			uv3_layer = bm.loops.layers.uv.get(uvName)
 
 		semantic_type = "TEXCOORD4"
 		if semantic_type in semantic_types and semantic_types[semantic_type][0] == "2":
 			uvName = "UV4Map"
-			uv4_layer = bm.loops.layers.uv.get(uvName) or bm.loops.layers.uv.new(uvName)
+			uv4_layer = bm.loops.layers.uv.get(uvName)
 
 		semantic_type = "TEXCOORD5"
 		if semantic_type in semantic_types and semantic_types[semantic_type][0] == "2":
 			uvName = "UV5Map"
-			uv5_layer = bm.loops.layers.uv.get(uvName) or bm.loops.layers.uv.new(uvName)
+			uv5_layer = bm.loops.layers.uv.get(uvName)
 
 		semantic_type = "TEXCOORD6"
 		if semantic_type in semantic_types and semantic_types[semantic_type][0] == "2":
 			uvName = "UV6Map"
-			uv6_layer = bm.loops.layers.uv.get(uvName) or bm.loops.layers.uv.new(uvName)
+			uv6_layer = bm.loops.layers.uv.get(uvName)
 
 		for vertex_data in mesh_vertices_buffer:
 			index, position, normal, tangent, color, uv1, uv2, uv3, uv4, uv5, uv6, blend_indices, blend_weight, color2 = vertex_data
