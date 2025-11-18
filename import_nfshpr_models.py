@@ -7067,11 +7067,7 @@ def create_renderable(renderable, materials, shaders, resource_type):
 			# vertex_size = vertex_properties[0]
 			# semantic_properties = vertex_properties[1][0]
 
-			semantic_types = []
-			semantic_data_types = []
-			for semantic in semantic_properties:
-				semantic_types.append(semantic[0])
-				semantic_data_types.append(semantic[1][0])
+			semantic_types = {semantic[0]: semantic[1][0] for semantic in semantic_properties}
 
 			mesh_vertices_buffer = []
 
@@ -7162,7 +7158,7 @@ def create_renderable(renderable, materials, shaders, resource_type):
 
 				mesh_vertices_buffer.append((index, position, normal, tangent, color, uv1, uv2, uv3, uv4, uv5, uv6, blend_indices, blend_weight, color2))
 
-			vertices_buffer[mesh_index] = (semantic_types, mesh_vertices_buffer, semantic_data_types, shader_description)
+			vertices_buffer[mesh_index] = (semantic_types, mesh_vertices_buffer, shader_description)
 
 	sensors_list = sorted(set(sensors_list))
 	bones_list = sorted(set(bones_list))
@@ -7209,7 +7205,7 @@ def create_renderable(renderable, materials, shaders, resource_type):
 		mesh_index = mesh_info[0]
 		mMaterialId = mesh_info[-1]
 		indices = indices_buffer[mesh_index]
-		semantic_types, mesh_vertices_buffer, semantic_data_types, shader_description = vertices_buffer[mesh_index]
+		semantic_types, mesh_vertices_buffer, shader_description = vertices_buffer[mesh_index]
 
 		#add material to the mesh list of materials
 		mat = bpy.data.materials.get(mMaterialId)
@@ -7234,32 +7230,32 @@ def create_renderable(renderable, materials, shaders, resource_type):
 		# uv6_layer = bm.loops.layers.uv.get(uvName) or bm.loops.layers.uv.new(uvName)
 
 		semantic_type = "TEXCOORD1"
-		if semantic_type in semantic_types and semantic_data_types[semantic_types.index(semantic_type)][0] == "2":		 #2f, 2e, 2h,...
+		if semantic_type in semantic_types and semantic_types[semantic_type][0] == "2":		 #2f, 2e, 2h,...
 			uvName = "UVMap" #or UV1Map
 			uv_layer = bm.loops.layers.uv.get(uvName) or bm.loops.layers.uv.new(uvName)
 
 		semantic_type = "TEXCOORD2"
-		if semantic_type in semantic_types and semantic_data_types[semantic_types.index(semantic_type)][0] == "2":
+		if semantic_type in semantic_types and semantic_types[semantic_type][0] == "2":
 			uvName = "UV2Map"
 			uv2_layer = bm.loops.layers.uv.get(uvName) or bm.loops.layers.uv.new(uvName)
 
 		semantic_type = "TEXCOORD3"
-		if semantic_type in semantic_types and semantic_data_types[semantic_types.index(semantic_type)][0] == "2":
+		if semantic_type in semantic_types and semantic_types[semantic_type][0] == "2":
 			uvName = "UV3Map"
 			uv3_layer = bm.loops.layers.uv.get(uvName) or bm.loops.layers.uv.new(uvName)
 
 		semantic_type = "TEXCOORD4"
-		if semantic_type in semantic_types and semantic_data_types[semantic_types.index(semantic_type)][0] == "2":
+		if semantic_type in semantic_types and semantic_types[semantic_type][0] == "2":
 			uvName = "UV4Map"
 			uv4_layer = bm.loops.layers.uv.get(uvName) or bm.loops.layers.uv.new(uvName)
 
 		semantic_type = "TEXCOORD5"
-		if semantic_type in semantic_types and semantic_data_types[semantic_types.index(semantic_type)][0] == "2":
+		if semantic_type in semantic_types and semantic_types[semantic_type][0] == "2":
 			uvName = "UV5Map"
 			uv5_layer = bm.loops.layers.uv.get(uvName) or bm.loops.layers.uv.new(uvName)
 
 		semantic_type = "TEXCOORD6"
-		if semantic_type in semantic_types and semantic_data_types[semantic_types.index(semantic_type)][0] == "2":
+		if semantic_type in semantic_types and semantic_types[semantic_type][0] == "2":
 			uvName = "UV6Map"
 			uv6_layer = bm.loops.layers.uv.get(uvName) or bm.loops.layers.uv.new(uvName)
 
@@ -7276,7 +7272,7 @@ def create_renderable(renderable, materials, shaders, resource_type):
 				if has_some_normal_data == False:
 					me_ob.create_normals_split()
 				has_some_normal_data = True
-			elif "TEXCOORD5" in semantic_types and (semantic_data_types[semantic_types.index("TEXCOORD5")] == "4hnorm" or semantic_data_types[semantic_types.index("TEXCOORD5")] == "3f"):
+			elif "TEXCOORD5" in semantic_types and (semantic_types["TEXCOORD5"] == "4hnorm" or semantic_types["TEXCOORD5"] == "3f"):
 				BMVert.normal = normal
 				normal_data.append([index, normal])
 				if has_some_normal_data == False:
@@ -7318,7 +7314,7 @@ def create_renderable(renderable, materials, shaders, resource_type):
 		has_uv2 = "TEXCOORD2" in semantic_types
 		has_uv3 = "TEXCOORD3" in semantic_types
 		has_uv4 = "TEXCOORD4" in semantic_types
-		has_uv5 = "TEXCOORD5" in semantic_types and semantic_data_types[semantic_types.index("TEXCOORD5")] == "2e"
+		has_uv5 = "TEXCOORD5" in semantic_types and semantic_types["TEXCOORD5"] == "2e"
 		has_uv6 = "TEXCOORD6" in semantic_types
 		has_color = "COLOR" in semantic_types
 
