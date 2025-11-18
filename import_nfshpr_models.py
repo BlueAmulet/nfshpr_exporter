@@ -8376,38 +8376,6 @@ def swap_resource_id(mResourceId):
 	return mResourceId
 
 
-def option_to_resource_version(resource_version):
-	if resource_version == 'OPT_A':
-		return "NFSHPR_PC"
-	elif resource_version == 'OPT_B':
-		return "NFSHP_PC"
-	elif resource_version == 'OPT_C':
-		return "NFSHP_PS3"
-	elif resource_version == 'OPT_D':
-		return "NFSHP_X360"
-	return "None"
-
-
-def option_to_resource_type(resource_type):
-	if resource_type == 'OPT_A':
-		return "InstanceList"
-	elif resource_type == 'OPT_B':
-		return "GraphicsSpec"
-	elif resource_type == 'OPT_C':
-		return "CharacterSpec"
-	elif resource_type == 'OPT_D':
-		return "Model"
-	elif resource_type == 'OPT_E':
-		return "TriggerData"
-	elif resource_type == 'OPT_F':
-		return "ZoneList"
-	elif resource_type == 'OPT_G':
-		return "PolygonSoupList"
-	elif resource_type == 'OPT_H':
-		return "VehicleList"
-	return "None"
-
-
 def clearScene(context): # OK
 	#for obj in bpy.context.scene.objects:
 	#	obj.select_set(True)
@@ -8502,24 +8470,24 @@ class ImportNFSHP(Operator, ImportHelper):
 	resource_version: EnumProperty(
 			name="Resource version",
 			description="Choose the resource version you want to load",
-			items=(('OPT_A', "PC - NFSHPR", "Need for Speed Hot Pursuit Remastered (2020) for PC"),
-				   ('OPT_B', "PC - NFSHP", "NOT SUPPORTED YET. Need for Speed Hot Pursuit for PC"),
-				   ('OPT_C', "PS3 - NFSHP", "NOT SUPPORTED YET. Need for Speed Most Wanted 2012 for PS3"),
-				   ('OPT_D', "X360 - NFSHP", "NOT SUPPORTED YET. Need for Speed Most Wanted 2012 for X360")),
-			default='OPT_A',
+			items=(('NFSHPR_PC', "PC - NFSHPR", "Need for Speed Hot Pursuit Remastered (2020) for PC"),
+				   ('NFSHP_PC', "PC - NFSHP", "NOT SUPPORTED YET. Need for Speed Hot Pursuit for PC"),
+				   ('NFSHP_PS3', "PS3 - NFSHP", "NOT SUPPORTED YET. Need for Speed Most Wanted 2012 for PS3"),
+				   ('NFSHP_X360', "X360 - NFSHP", "NOT SUPPORTED YET. Need for Speed Most Wanted 2012 for X360")),
+			default='NFSHPR_PC',
 			)
 
 	resource_type: EnumProperty(
 			name="Resource type",
 			description="Choose the resource type you want to load",
-			items=(('OPT_A', "InstanceList", "Track units"),
-				   ('OPT_B', "GraphicsSpec", "Vehicles"),
-				   ('OPT_C', "CharacterSpec", "Characters"),
-				   ('OPT_D', "Model", "Standalone model"),
-				   ('OPT_E', "TriggerData", "Triggers"),
-				   ('OPT_F', "ZoneList", "PVS"),
-				   ('OPT_G', "PolygonSoupList", "Collision")),
-			default='OPT_B',
+			items=(('InstanceList', "InstanceList", "Track units"),
+				   ('GraphicsSpec', "GraphicsSpec", "Vehicles"),
+				   ('CharacterSpec', "CharacterSpec", "Characters"),
+				   ('Model', "Model", "Standalone model"),
+				   ('TriggerData', "TriggerData", "Triggers"),
+				   ('ZoneList', "ZoneList", "PVS"),
+				   ('PolygonSoupList', "PolygonSoupList", "Collision")),
+			default='GraphicsSpec',
 			)
 
 	is_bundle: BoolProperty(
@@ -8591,7 +8559,7 @@ class ImportNFSHP(Operator, ImportHelper):
 		global_matrix = axis_conversion(from_forward='Z', from_up='Y', to_forward=self.axis_forward, to_up=self.axis_up).to_4x4()
 
 		os.system('cls' if os.name=='nt' else 'clear')
-		status = main(context, self.filepath, option_to_resource_version(self.resource_version), option_to_resource_type(self.resource_type), self.is_bundle,
+		status = main(context, self.filepath, self.resource_version, self.resource_type, self.is_bundle,
 					  self.clear_scene, self.debug_prefer_shared_asset, self.hide_low_lods, self.hide_polygonsoup, self.hide_skeleton, self.hide_controlmesh,
 					  self.hide_effects, self.random_color, global_matrix)
 
